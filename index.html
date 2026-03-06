@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Macros</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#17171b;--panel:#1f1f25;--card:#27272e;--card2:#2e2e38;
+  --border:#35353f;--border2:#46465a;
+  --text:#ededed;--text2:#a8a8bc;--text3:#60607a;--text4:#383848;
+  --accent:#3a9e8c;--accent-d:rgba(58,158,140,0.14);
+  --red:#cc4444;--red-d:rgba(204,68,68,0.12);
+  --warn:#b07828;--warn-d:rgba(176,120,40,0.12);
+  --r:6px;--r2:4px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+.shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── HEADER ── */
+.hdr{height:48px;flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px}
+.wm{font-size:14px;font-weight:600;letter-spacing:-.2px;white-space:nowrap}
+.wm em{font-style:normal;color:var(--accent)}
+.nav{display:flex;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px;gap:2px}
+.nb{padding:5px 13px;border:none;border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nb:hover{color:var(--text2)}
+.nb.on{background:var(--card2);color:var(--text)}
+
+/* ── VIEWS ── */
+.view{display:none;flex:1;min-height:0;overflow:hidden}
+.view.on{display:flex}
+
+/* ══════════════════════════════════════
+   PLANNER — desktop side by side
+   On mobile: single column, tab-switched
+══════════════════════════════════════ */
+.pv{flex-direction:row}
+
+/* Mobile person switcher — hidden on desktop */
+.mob-switch{display:none;flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);padding:8px 14px;gap:8px}
+.ms-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:var(--r2);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-align:center}
+.ms-btn.on{background:var(--card2);border-color:var(--border2);color:var(--text)}
+.ms-btn.cn.on{color:var(--accent);border-color:var(--accent)}
+
+.ucol{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;border-right:1px solid var(--border);min-height:0;min-width:0}
+.ucol:last-child{border-right:none}
+
+/* ── USER HEAD (sticky inside scroll) ── */
+.uhead{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:2px solid var(--border2);padding:12px 14px 10px;flex-shrink:0}
+.uhead-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.uname{font-size:15px;font-weight:600;letter-spacing:-.3px;white-space:nowrap}
+.uname.cn{color:var(--accent)}
+.dtabs{display:flex;gap:3px;flex-wrap:wrap}
+.dt{padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.dt:hover{border-color:var(--border2);color:var(--text2)}
+.dt.on{background:var(--text);border-color:var(--text);color:var(--bg);font-weight:500}
+
+.mrow{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+.mt{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:6px 8px}
+.ml{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:2px}
+.mv{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;line-height:1}
+.mv.over{color:var(--red)}
+.mr2{font-family:'DM Mono',monospace;font-size:8px;color:var(--text3);margin-top:2px}
+.mr2.over{color:var(--red)}
+.mbar{height:2px;background:var(--card2);border-radius:1px;margin-top:4px;overflow:hidden}
+.mfill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s ease}
+.mfill.over{background:var(--red)}
+
+.trow{display:flex;gap:4px}
+.tgt{flex:1;display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:3px 6px;transition:border-color .12s;min-width:0}
+.tgt:focus-within{border-color:var(--accent)}
+.tgt label{font-family:'DM Mono',monospace;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.tgt input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;width:100%;min-width:0}
+.tgt input:focus{outline:none}
+
+/* ── MEALS AREA ──
+   KEY FIX: meals are NOT in a fixed flex container.
+   The column itself scrolls (overflow-y:auto on .ucol).
+   Each meal is fully natural height — food rows are always visible.
+   Collapsing hides the body to save space.
+── */
+.meals-area{display:flex;flex-direction:column}
+
+.mblock{border-bottom:1px solid var(--border)}
+.mblock:last-of-type{border-bottom:none}
+
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--card);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;gap:8px}
+.mhead:hover{background:var(--card2)}
+.mhl{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.mn{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--text2);white-space:nowrap;flex-shrink:0}
+.mk{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);white-space:nowrap;flex-shrink:0}
+.mmp{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
+.mchev{font-size:10px;color:var(--text3);flex-shrink:0;transition:transform .2s;margin-left:auto}
+.mblock.open .mchev{transform:rotate(180deg)}
+.mcb{padding:3px 8px;border:1px solid var(--border);border-radius:3px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:10px;cursor:pointer;transition:all .12s;flex-shrink:0;white-space:nowrap}
+.mcb:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-d)}
+
+/* Meal body — shown when .open, hidden when not */
+.mbody{display:none;flex-direction:column}
+.mblock.open .mbody{display:flex}
+
+/* Column headers */
+.cheads{display:grid;grid-template-columns:1fr 78px 30px 34px 30px 30px 30px 22px;gap:3px;padding:3px 11px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.05)}
+.ch{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--text4);text-align:right}
+.ch:first-child{text-align:left}
+
+/* Food rows — natural height, always fully visible */
+.frow{display:grid;grid-template-columns:1fr 78px 30px 34px 30px 30px 30px 22px;gap:3px;padding:3px 11px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
+.frow:last-child{border-bottom:none}
+
+.fw{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fsel{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);padding:4px 22px 4px 7px;font-family:'DM Sans',sans-serif;font-size:11px;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%2360607a' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;transition:border-color .12s}
+.fsel:focus{outline:none;border-color:var(--accent)}
+.fsel option{background:#27272e}
+
+.step{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--r2);background:var(--card);overflow:hidden;transition:border-color .12s}
+.step:focus-within{border-color:var(--accent)}
+.sb{width:22px;height:28px;border:none;background:transparent;color:var(--text3);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0;line-height:1}
+.sb:hover{background:var(--card2);color:var(--text)}
+.sv{flex:1;border:none;background:transparent;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;text-align:center;min-width:0;padding:0}
+.sv:focus{outline:none}
+
+.uc{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--text2);text-align:right}
+.db{width:24px;height:24px;border:none;background:transparent;color:var(--text4);font-size:14px;cursor:pointer;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0}
+.db:hover{background:var(--red-d);color:var(--red)}
+
+.arz{padding:5px 14px 7px;border-top:1px solid rgba(255,255,255,0.04)}
+.ab{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px dashed var(--border);border-radius:var(--r2);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .12s}
+.ab:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-d)}
+
+.pw{display:inline-flex;background:var(--warn-d);border-radius:3px;padding:1px 4px;font-family:'DM Mono',monospace;font-size:8px;color:var(--warn)}
+
+.sugg{margin:6px 14px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px}
+.slbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--border);border-radius:20px;background:var(--panel);color:var(--text2);font-size:11px;cursor:pointer;transition:all .12s}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-d)}
+.cs{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3)}
+
+/* ── SHOPPING ── */
+.sv2{flex-direction:column;overflow-y:auto;background:var(--bg)}
+.si{max-width:760px;margin:0 auto;padding:24px 20px 56px;width:100%}
+.ph{margin-bottom:20px}
+.ph h2{font-size:19px;font-weight:600;letter-spacing:-.3px;margin-bottom:2px}
+.ph p{color:var(--text3);font-size:12px}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.sc{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.sch{padding:9px 13px;border-bottom:1px solid var(--border);background:var(--card)}
+.scn{font-size:13px;font-weight:600;color:var(--text)}
+.scn.c{color:var(--accent)}
+.rlist{padding:9px 13px;display:flex;flex-direction:column;gap:8px}
+.rrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rlbl{font-size:12px;color:var(--text2)}
+.rstep{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--r2);background:var(--card);overflow:hidden}
+.rb{width:28px;height:28px;border:none;background:transparent;color:var(--text3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.rb:hover{background:var(--card2);color:var(--text)}
+.rn{width:32px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--text3);border:none;background:transparent;padding:0}
+.rn:focus{outline:none}
+.rn.on{color:var(--accent);font-weight:600}
+.grow{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.gbtn{padding:9px 20px;background:var(--accent);border:none;border-radius:var(--r);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.gbtn:hover{filter:brightness(1.1)}
+.cbtn{padding:9px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.cbtn:hover{border-color:var(--accent);color:var(--accent)}
+.lcard{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.lhd{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;background:var(--card);border-bottom:1px solid var(--border)}
+.lt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text2)}
+.lc{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.lrow{display:grid;grid-template-columns:1fr 120px 120px;gap:8px;padding:8px 15px;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center}
+.lrow:last-child{border-bottom:none}
+.lrow:hover{background:var(--card)}
+.ln{font-size:12px;color:var(--text)}
+.la{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);text-align:right}
+.lw{display:flex;justify-content:flex-end}
+.empty{padding:32px 15px;text-align:center;color:var(--text3);font-size:12px}
+
+/* ── DATABASE ── */
+.dv{flex-direction:column;overflow-y:auto;background:var(--bg)}
+.di{max-width:920px;margin:0 auto;padding:24px 20px 56px;width:100%}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{text-align:left;padding:5px 9px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);border-bottom:1px solid var(--border);font-weight:400}
+.dtbl th:not(:first-child){text-align:right}
+.dtbl td{padding:5px 9px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;color:var(--text2)}
+.dtbl td:first-child{color:var(--text);font-size:12px}
+.dtbl td:not(:first-child){font-family:'DM Mono',monospace;text-align:right}
+.dtbl tr:hover td{background:var(--card)}
+.pi{background:transparent;border:1px solid transparent;border-radius:3px;color:var(--text);padding:2px 4px;font-family:'DM Mono',monospace;font-size:11px;width:64px;text-align:right;transition:all .12s}
+.pi:hover{border-color:var(--border);background:var(--card)}
+.pi:focus{outline:none;border-color:var(--accent);background:var(--card)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(5px);background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:8px 16px;border-radius:var(--r);font-size:12px;font-weight:500;opacity:0;transition:all .2s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+
+/* ══════════════════════════════════════
+   MOBILE — single column, person tabs
+══════════════════════════════════════ */
+@media(max-width:680px){
+  .hdr{padding:0 12px}
+  .nb{padding:5px 10px;font-size:11px}
+
+  /* Show mobile switcher, hide one column */
+  .mob-switch{display:flex}
+  .pv{flex-direction:column}
+
+  /* Both columns stack but only active one shows */
+  .ucol{border-right:none;border-bottom:1px solid var(--border);display:none}
+  .ucol.mob-active{display:flex}
+
+  /* Tighter header on mobile */
+  .uhead{padding:10px 12px 8px}
+  .uhead-top{margin-bottom:8px}
+  .uname{font-size:14px}
+  .mrow{gap:4px;margin-bottom:6px}
+  .mt{padding:5px 6px}
+  .mv{font-size:13px}
+  .trow{gap:3px}
+  .tgt{padding:2px 5px}
+  .tgt label{font-size:7px}
+  .tgt input{font-size:10px}
+
+  /* Mobile: hide unit col, show all 4 macros */
+  .cheads,.frow{grid-template-columns:1fr 68px 0 32px 28px 28px 28px 22px}
+  .ch:nth-child(3),.frow .uc{visibility:hidden;width:0;min-width:0;padding:0;overflow:hidden}
+
+  /* Bigger touch targets */
+  .sb{width:28px;height:32px}
+  .mhead{padding:8px 12px}
+  .mn{font-size:11px}
+  .arz{padding:5px 12px 8px}
+  .ab{padding:6px 12px;font-size:12px}
+
+  /* Shopping */
+  .sgrid{grid-template-columns:1fr}
+  .si{padding:18px 14px 48px}
+
+  /* Database — scrollable table */
+  .di{padding:18px 14px 48px}
+  .dtbl{font-size:10px;display:block;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hdr">
+    <div style="display:flex;align-items:center;gap:10px"><div class="wm">mac<em>r</em>os</div><span id="sync-status" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)"></span></div>
+    <div class="nav">
+      <button class="nb on" onclick="showTab('planner',this)">Planner</button>
+      <button class="nb" onclick="showTab('shopping',this)">Shopping</button>
+      <button class="nb" onclick="showTab('database',this)">Database</button>
+    </div>
+    <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+      <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'" title="Save plan as JSON file — import on another device">Export</button>
+      <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'" title="Load a previously exported plan">Import</button>
+      <button onclick="clearData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'" title="Reset everything">Reset</button>
+    </div>
+  </header>
+
+  <!-- PLANNER -->
+  <div id="view-planner" class="view pv on" style="display:flex;flex-direction:column">
+
+    <!-- Mobile person switcher -->
+    <div class="mob-switch">
+      <button class="ms-btn on" id="mob-lewis" onclick="mobSwitch('lewis')">Lewis</button>
+      <button class="ms-btn cn" id="mob-charlotte" onclick="mobSwitch('charlotte')">Charlotte</button>
+    </div>
+
+    <!-- Planner columns: Lewis left, Charlotte right -->
+    <div style="display:flex;flex:1;min-height:0;overflow:hidden">
+      <div class="ucol mob-active" id="col-lewis"></div>
+      <div class="ucol" id="col-charlotte"></div>
+    </div>
+
+  </div>
+
+  <!-- SHOPPING -->
+  <div id="view-shopping" class="view sv2">
+    <div class="si">
+      <div class="ph"><h2>Shopping List</h2><p>Set how many times each day appears in the week for each person, then generate.</p></div>
+      <div class="sgrid">
+        <div class="sc">
+          <div class="sch"><span class="scn">Lewis</span></div>
+          <div class="rlist" id="lewis-reps"></div>
+        </div>
+        <div class="sc">
+          <div class="sch"><span class="scn c">Charlotte</span></div>
+          <div class="rlist" id="charlotte-reps"></div>
+        </div>
+      </div>
+      <div class="grow">
+        <button class="gbtn" onclick="generateList()">Generate list</button>
+        <button class="cbtn" onclick="copyList()">Copy as text</button>
+      </div>
+      <div class="lcard">
+        <div class="lhd"><span class="lt">Items</span><span class="lc" id="list-cnt">—</span></div>
+        <div id="list-body"><div class="empty">Set day counts above and generate.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATABASE -->
+  <div id="view-database" class="view dv">
+    <div class="di">
+      <div class="ph"><h2>Food Database</h2><p>Edit pack sizes to enable shopping list warnings.</p></div>
+      <table class="dtbl">
+        <thead><tr><th>Food</th><th>Serving</th><th>Unit</th><th>Kcal</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Pack size</th></tr></thead>
+        <tbody id="db-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+const FOODS=[{id:1,name:"5% Fat Beef Mince",c:0,p:20.8,f:4.5,kcal:124,serving:100,unit:"g",pack:500},{id:2,name:"85% Dark Chocolate",c:5.2,p:1.8,f:10.4,kcal:122,serving:20,unit:"g",pack:null},{id:3,name:"Almond Butter",c:3,p:3,f:8,kcal:96,serving:15,unit:"g",pack:null},{id:4,name:"Almonds",c:1.9,p:4.2,f:9.9,kcal:114,serving:20,unit:"g",pack:null},{id:5,name:"Alpen Light Bar",c:17,p:0.9,f:1.1,kcal:82,serving:1,unit:"bar",pack:null},{id:6,name:"Apple",c:35,p:0,f:0,kcal:140,serving:1,unit:"whole",pack:null},{id:7,name:"Asparagus",c:3.9,p:2.2,f:0.1,kcal:25,serving:100,unit:"g",pack:null},{id:8,name:"Aubergine",c:2.2,p:0.9,f:0.4,kcal:16,serving:100,unit:"g",pack:null},{id:9,name:"Avocado",c:12.8,p:3,f:22,kcal:261,serving:1,unit:"whole",pack:null},{id:10,name:"Bacon Medallions",c:0,p:31.5,f:7.5,kcal:194,serving:100,unit:"g",pack:null},{id:11,name:"Banana",c:27,p:1.3,f:0,kcal:113,serving:1,unit:"whole",pack:null},{id:12,name:"Basmati Rice (micro)",c:42,p:4.9,f:0.9,kcal:196,serving:125,unit:"g",pack:125},{id:13,name:"Bean Sprouts",c:3.8,p:2.9,f:0.5,kcal:31,serving:100,unit:"g",pack:null},{id:14,name:"Beef Jerky",c:5,p:10.3,f:1,kcal:70,serving:25,unit:"g",pack:null},{id:15,name:"Gammon Steak",c:0.2,p:48,f:9,kcal:274,serving:225,unit:"g",pack:225},{id:16,name:"Black Beans",c:23,p:10.5,f:0.7,kcal:140,serving:100,unit:"g",pack:null},{id:17,name:"Blueberries",c:14.5,p:0.8,f:0.3,kcal:64,serving:100,unit:"g",pack:null},{id:18,name:"Brazil Nuts",c:0.5,p:2.1,f:10.2,kcal:102,serving:15,unit:"g",pack:null},{id:19,name:"Cabbage",c:5.2,p:1.1,f:0.1,kcal:26,serving:100,unit:"g",pack:null},{id:20,name:"Cashew Butter",c:5.5,p:2.5,f:7.5,kcal:100,serving:1,unit:"tbsp",pack:null},{id:21,name:"Cashew Nuts",c:2.8,p:2.8,f:6.7,kcal:83,serving:15,unit:"g",pack:null},{id:22,name:"Celery",c:2.2,p:0.6,f:0.1,kcal:12,serving:100,unit:"g",pack:null},{id:23,name:"Chick Peas",c:45,p:6,f:4.6,kcal:245,serving:100,unit:"g",pack:null},{id:24,name:"Chicken Breast",c:0,p:37.7,f:2.7,kcal:175,serving:170,unit:"g",pack:null},{id:25,name:"Coco Pops",c:50,p:3,f:1.6,kcal:226,serving:60,unit:"g",pack:null},{id:26,name:"Coconut Oil",c:0,p:0,f:5,kcal:45,serving:1,unit:"tsp",pack:null},{id:27,name:"Cod",c:0,p:23,f:0.8,kcal:99,serving:100,unit:"g",pack:null},{id:28,name:"Cottage Cheese",c:1,p:13,f:4,kcal:92,serving:100,unit:"g",pack:null},{id:29,name:"Courgette",c:1.8,p:1.8,f:0.4,kcal:18,serving:100,unit:"g",pack:null},{id:30,name:"Cous Cous",c:23.7,p:4.9,f:3.1,kcal:142,serving:100,unit:"g",pack:null},{id:31,name:"Cucumber",c:3.6,p:0.6,f:0.1,kcal:18,serving:100,unit:"g",pack:null},{id:32,name:"Edamame",c:8,p:7.9,f:3,kcal:91,serving:60,unit:"g",pack:null},{id:33,name:"Egg White",c:0.2,p:3.6,f:0.1,kcal:16,serving:1,unit:"egg white",pack:null},{id:34,name:"Fat Free Greek Yoghurt",c:4.4,p:15.9,f:0,kcal:81,serving:200,unit:"g",pack:null},{id:35,name:"Flax Seeds",c:4.2,p:3,f:6.6,kcal:88,serving:15,unit:"g",pack:null},{id:36,name:"Full Fat Greek Yogurt",c:5.5,p:4.2,f:9.5,kcal:124,serving:100,unit:"g",pack:null},{id:37,name:"Grapes",c:16,p:0.6,f:0.2,kcal:68,serving:100,unit:"g",pack:null},{id:38,name:"Green Beans",c:3.2,p:1.9,f:0.5,kcal:25,serving:100,unit:"g",pack:null},{id:39,name:"Grenade Bar",c:13.6,p:23.3,f:8,kcal:220,serving:1,unit:"bar",pack:null},{id:40,name:"Halloumi Light",c:1.4,p:8,f:3.8,kcal:72,serving:30,unit:"g",pack:null},{id:41,name:"Heck Chicken Sausages",c:4.7,p:20.5,f:5.6,kcal:151,serving:100,unit:"g",pack:null},{id:42,name:"Honey",c:17.3,p:0.1,f:0,kcal:70,serving:1,unit:"tbsp",pack:null},{id:43,name:"Hummus",c:4,p:2,f:5,kcal:69,serving:2,unit:"tbsp",pack:null},{id:44,name:"Impact Diet Whey",c:2.5,p:15.8,f:1.6,kcal:88,serving:25,unit:"g",pack:null},{id:45,name:"Impact Whey (MyProtein)",c:1.5,p:20.5,f:1.7,kcal:103,serving:25,unit:"g",pack:null},{id:46,name:"Kale",c:5.9,p:2.9,f:0.6,kcal:41,serving:25,unit:"g",pack:null},{id:47,name:"Kiwi",c:12,p:1,f:0.5,kcal:57,serving:1,unit:"whole",pack:null},{id:48,name:"Large Egg",c:0,p:6,f:5,kcal:69,serving:1,unit:"whole",pack:null},{id:49,name:"Lentils",c:13,p:12,f:0.6,kcal:105,serving:100,unit:"g",pack:null},{id:50,name:"Lettuce",c:3.3,p:1.2,f:0.3,kcal:21,serving:100,unit:"g",pack:null},{id:51,name:"Linda McCarthy Sausages",c:6.9,p:16.4,f:5,kcal:138,serving:2,unit:"whole",pack:null},{id:52,name:"Lurpak Butter",c:0.1,p:0.3,f:4,kcal:38,serving:10,unit:"g",pack:null},{id:53,name:"Medium Egg",c:0,p:6,f:4,kcal:60,serving:1,unit:"whole",pack:null},{id:54,name:"Melon",c:9,p:1,f:0.2,kcal:42,serving:100,unit:"g",pack:null},{id:55,name:"Olive Oil",c:0,p:0,f:4.5,kcal:41,serving:1,unit:"tsp",pack:null},{id:56,name:"Orange",c:15.4,p:1.2,f:0.2,kcal:68,serving:1,unit:"whole",pack:null},{id:57,name:"Pea Protein",c:1,p:24,f:2,kcal:118,serving:25,unit:"g",pack:null},{id:58,name:"Pineapple",c:13,p:0.5,f:0.1,kcal:55,serving:100,unit:"g",pack:null},{id:59,name:"Pistachio Nuts",c:4.1,p:3.1,f:6.8,kcal:90,serving:1,unit:"tsp",pack:null},{id:60,name:"Porridge Oats",c:30.2,p:5.2,f:3.5,kcal:173,serving:50,unit:"g",pack:null},{id:61,name:"Prawns",c:0,p:23,f:0.6,kcal:97,serving:100,unit:"g",pack:null},{id:62,name:"Quinoa",c:41.3,p:7.9,f:3.5,kcal:228,serving:60,unit:"g",pack:null},{id:63,name:"Quorn Ground Beef",c:10.6,p:15.3,f:2.4,kcal:125,serving:100,unit:"g",pack:null},{id:64,name:"Raspberries",c:4.6,p:0.4,f:0.3,kcal:23,serving:100,unit:"g",pack:null},{id:65,name:"Red Onion",c:9.3,p:1.1,f:0.1,kcal:43,serving:100,unit:"g",pack:null},{id:66,name:"Red Pepper",c:6,p:2,f:0.3,kcal:35,serving:100,unit:"g",pack:null},{id:67,name:"Dark Choc Rice Cakes",c:20,p:2.4,f:7.8,kcal:160,serving:2,unit:"whole",pack:null},{id:68,name:"Rice Krispies",c:52,p:4.2,f:0.8,kcal:232,serving:60,unit:"g",pack:null},{id:69,name:"Rice Protein",c:2,p:12,f:0,kcal:56,serving:25,unit:"g",pack:null},{id:70,name:"Salmon Fillet",c:0,p:30,f:17.5,kcal:278,serving:120,unit:"g",pack:null},{id:71,name:"Sea Bass",c:0,p:23,f:2.5,kcal:115,serving:100,unit:"g",pack:null},{id:72,name:"Seitan",c:8,p:25,f:2,kcal:150,serving:100,unit:"g",pack:null},{id:73,name:"Skimmed Milk",c:7.5,p:5.1,f:0.2,kcal:52,serving:150,unit:"ml",pack:null},{id:74,name:"Skyr Yogurt",c:3.5,p:11,f:0.2,kcal:60,serving:100,unit:"g",pack:null},{id:75,name:"Smoked Salmon",c:0,p:23.3,f:14,kcal:219,serving:100,unit:"g",pack:null},{id:76,name:"Smooth Peanut Butter",c:1.5,p:3.6,f:8,kcal:92,serving:15,unit:"g",pack:null},{id:77,name:"Spinach",c:3,p:2,f:0,kcal:20,serving:25,unit:"g",pack:null},{id:78,name:"Sprouts",c:4.1,p:3.5,f:1.4,kcal:43,serving:100,unit:"g",pack:null},{id:79,name:"Steak Fillet",c:0,p:35.5,f:13.4,kcal:263,serving:170,unit:"g",pack:null},{id:80,name:"Strawberries",c:7.7,p:0.7,f:0.3,kcal:36,serving:100,unit:"g",pack:null},{id:81,name:"Strawberry Jam",c:10,p:0,f:0,kcal:40,serving:15,unit:"g",pack:null},{id:82,name:"Sweet Potato",c:52.8,p:4.1,f:0.2,kcal:229,serving:260,unit:"g",pack:null},{id:83,name:"Tofu",c:2.4,p:8.2,f:4.7,kcal:85,serving:100,unit:"g",pack:null},{id:84,name:"Tomatoes",c:3.9,p:0.9,f:0.2,kcal:21,serving:100,unit:"g",pack:null},{id:85,name:"Tuna (springwater)",c:0,p:25,f:0,kcal:100,serving:1,unit:"tin",pack:1},{id:86,name:"Tuna Steak",c:0,p:25.4,f:0.4,kcal:105,serving:100,unit:"g",pack:null},{id:87,name:"Turkey Breast",c:0,p:33.4,f:1.8,kcal:150,serving:150,unit:"g",pack:null},{id:88,name:"Turkey Mince",c:0,p:29.8,f:8.4,kcal:195,serving:150,unit:"g",pack:null},{id:89,name:"Walnuts",c:2,p:2.5,f:10,kcal:108,serving:15,unit:"g",pack:null},{id:90,name:"Watermelon",c:7,p:0.6,f:0.2,kcal:32,serving:100,unit:"g",pack:null},{id:91,name:"Whey Isolate (MyProtein)",c:0.6,p:23,f:0.3,kcal:97,serving:25,unit:"g",pack:null},{id:92,name:"White Bagel (NYB)",c:42.8,p:8.1,f:1.2,kcal:214,serving:1,unit:"whole",pack:null},{id:93,name:"White Onion",c:10,p:1.1,f:0,kcal:44,serving:100,unit:"g",pack:null},{id:94,name:"White Potato",c:16,p:1.7,f:0,kcal:71,serving:100,unit:"g",pack:null},{id:95,name:"Wholemeal Bagel (NYB)",c:49,p:11,f:2.5,kcal:263,serving:1,unit:"whole",pack:null},{id:96,name:"Wholemeal Bread",c:27,p:6.2,f:1.8,kcal:149,serving:2,unit:"slices",pack:null},{id:97,name:"Wholemeal Pasta",c:62,p:15,f:3.5,kcal:340,serving:100,unit:"g",pack:null},{id:98,name:"Wholemeal Wrap",c:33,p:7,f:3.6,kcal:192,serving:1,unit:"whole",pack:null},{id:99,name:"Light Mayonnaise",c:1,p:0,f:4,kcal:40,serving:15,unit:"g",pack:null},{id:100,name:"BBQ Sauce",c:5,p:0,f:0,kcal:20,serving:15,unit:"g",pack:null},{id:101,name:"Ketchup",c:4,p:0,f:0,kcal:16,serving:15,unit:"g",pack:null},{id:102,name:"Cajun Spice",c:1,p:0,f:0,kcal:4,serving:5,unit:"g",pack:null},{id:103,name:"Chinese 5 Spice",c:3,p:0,f:0,kcal:12,serving:5,unit:"g",pack:null},{id:104,name:"Garlic",c:1,p:0,f:1,kcal:13,serving:5,unit:"g",pack:null},{id:105,name:"Broccoli",c:7,p:2.8,f:0,kcal:39,serving:100,unit:"g",pack:null},{id:106,name:"Spicy Mexican Rice (micro)",c:36,p:4.8,f:3.8,kcal:197,serving:125,unit:"g",pack:125},{id:107,name:"Pilau Rice (micro)",c:36.1,p:3.8,f:2.8,kcal:185,serving:125,unit:"g",pack:125},{id:108,name:"Egg Fried Rice (micro)",c:35,p:4.9,f:3.6,kcal:192,serving:125,unit:"g",pack:125},{id:109,name:"Utterly Butterly",c:0.2,p:0,f:4.9,kcal:45,serving:10,unit:"g",pack:null},{id:110,name:"MyProtein Chocolate Spread",c:5,p:3.1,f:5.6,kcal:83,serving:15,unit:"g",pack:null},{id:111,name:"MyProtein Pancake Mix",c:7.5,p:30.5,f:3.2,kcal:181,serving:50,unit:"g",pack:null},{id:112,name:"Carrots",c:32,p:3.3,f:0.7,kcal:148,serving:100,unit:"g",pack:null},{id:113,name:"Crunchy Peanut Butter",c:1.7,p:3.7,f:8,kcal:94,serving:15,unit:"g",pack:null},{id:114,name:"10% Mince Beef",c:0,p:21.9,f:9.6,kcal:174,serving:100,unit:"g",pack:500},{id:115,name:"20% Mince Beef",c:0,p:18.4,f:19.8,kcal:252,serving:100,unit:"g",pack:500},{id:116,name:"Smoked Back Bacon",c:0,p:4.6,f:3.1,kcal:46,serving:1,unit:"rasher",pack:null},{id:117,name:"Baked Beans",c:25,p:9.4,f:0.4,kcal:141,serving:200,unit:"g",pack:400},{id:118,name:"Chopped Tomatoes",c:4,p:1.4,f:0.2,kcal:23,serving:100,unit:"g",pack:400},{id:119,name:"Wholemeal Pitta",c:27.6,p:6.7,f:1.6,kcal:152,serving:1,unit:"whole",pack:null},{id:120,name:"Mushrooms",c:0.4,p:1.8,f:0.5,kcal:13,serving:100,unit:"g",pack:null},{id:121,name:"Diced Chorizo",c:0.3,p:7.8,f:8.4,kcal:108,serving:30,unit:"g",pack:null},{id:122,name:"Ham",c:0.3,p:1.8,f:0.3,kcal:11,serving:1,unit:"slice",pack:null},{id:123,name:"Cayenne Pepper",c:1,p:0,f:0,kcal:4,serving:5,unit:"g",pack:null},{id:124,name:"Chilli Powder",c:1.1,p:0.7,f:0.5,kcal:12,serving:5,unit:"g",pack:null},{id:125,name:"Semi Skimmed Milk",c:7.2,p:5.4,f:2.7,kcal:75,serving:150,unit:"ml",pack:null},{id:126,name:"Mixed Frozen Veg",c:7.2,p:3.1,f:0.8,kcal:48,serving:100,unit:"g",pack:null},{id:127,name:"Brown Sauce",c:3.6,p:0.1,f:0,kcal:15,serving:15,unit:"g",pack:null},{id:128,name:"Spring Onion",c:0.6,p:0.4,f:0,kcal:4,serving:20,unit:"g",pack:null},{id:129,name:"Mozzarella Cheese",c:1.3,p:9.3,f:7.9,kcal:114,serving:30,unit:"g",pack:null},{id:130,name:"Pesto",c:0.9,p:3.3,f:9,kcal:98,serving:30,unit:"g",pack:null},{id:131,name:"Parsnips",c:12.5,p:1.8,f:1.1,kcal:67,serving:100,unit:"g",pack:null},{id:132,name:"Casein Protein",c:2.5,p:20.8,f:0.3,kcal:96,serving:25,unit:"g",pack:null},{id:133,name:"Peanuts",c:3.2,p:5.2,f:9.8,kcal:122,serving:20,unit:"g",pack:null},{id:134,name:"Marmalade",c:13.3,p:0.1,f:0,kcal:54,serving:15,unit:"g",pack:null},{id:135,name:"Tesco Fruit & Nut Granola",c:29,p:5.3,f:7.1,kcal:201,serving:50,unit:"g",pack:null},{id:136,name:"Weetabix",c:26,p:4.5,f:0.8,kcal:129,serving:2,unit:"biscuits",pack:null},{id:137,name:"Lentil Curls Crisps",c:12.3,p:2.1,f:4,kcal:94,serving:20,unit:"g",pack:null},{id:138,name:"Almond Milk",c:3.3,p:0.4,f:0.8,kcal:22,serving:100,unit:"ml",pack:null},{id:139,name:"Coconut Milk",c:0.4,p:0,f:1.9,kcal:19,serving:100,unit:"ml",pack:null},{id:140,name:"Mild Cheddar Cheese",c:0,p:7.6,f:10.5,kcal:125,serving:30,unit:"g",pack:null},{id:141,name:"Diet Coke",c:0,p:0,f:0,kcal:0,serving:250,unit:"ml",pack:null},{id:142,name:"Diet Lemonade",c:0,p:0,f:0,kcal:0,serving:250,unit:"ml",pack:null},{id:143,name:"Vodka",c:14.4,p:0,f:0,kcal:58,serving:25,unit:"ml",pack:null},{id:144,name:"Gin",c:14.4,p:0,f:0,kcal:58,serving:25,unit:"ml",pack:null},{id:145,name:"Coco Pops Bar",c:14,p:1.5,f:2,kcal:80,serving:1,unit:"whole",pack:null},{id:146,name:"Pop Chips",c:11,p:1,f:2.9,kcal:74,serving:17,unit:"g",pack:null},{id:147,name:"Hard Boiled Egg",c:0.5,p:5.5,f:4.7,kcal:66,serving:1,unit:"whole",pack:null},{id:148,name:"Snack-a-jacks",c:11,p:0.7,f:0.3,kcal:50,serving:1,unit:"cake",pack:null},{id:149,name:"Sun Bites",c:15.3,p:1.8,f:5.4,kcal:117,serving:25,unit:"g",pack:null},{id:150,name:"Propercorn",c:8.8,p:0.7,f:2.5,kcal:61,serving:14,unit:"g",pack:null},{id:151,name:"Ryvita Dark Rye",c:13,p:2,f:0,kcal:60,serving:2,unit:"crackers",pack:null},{id:152,name:"KIND Bar",c:21,p:3,f:12,kcal:204,serving:1,unit:"bar",pack:null},{id:153,name:"Olives",c:1,p:0,f:2.5,kcal:27,serving:5,unit:"whole",pack:null},{id:154,name:"Venison",c:0,p:33.8,f:3,kcal:162,serving:115,unit:"g",pack:null},{id:155,name:"Soy Milk",c:5.5,p:4.1,f:2.2,kcal:58,serving:100,unit:"ml",pack:null},{id:156,name:"Tinned Sardines",c:1.1,p:22.2,f:13,kcal:210,serving:120,unit:"g",pack:120},{id:157,name:"Tinned Mackerel",c:0,p:14.6,f:16.7,kcal:209,serving:90,unit:"g",pack:null},{id:158,name:"Branflakes",c:31.7,p:6,f:1.3,kcal:163,serving:50,unit:"g",pack:null},{id:159,name:"Egg Noodles",c:38.3,p:7.5,f:3.5,kcal:215,serving:150,unit:"g",pack:null},{id:160,name:"MyProtein All Natural PB",c:1.8,p:4.5,f:6.9,kcal:87,serving:15,unit:"g",pack:null},{id:161,name:"Beetroot",c:10,p:2,f:0,kcal:48,serving:100,unit:"g",pack:null},{id:162,name:"MyProtein Lean Protein Bar",c:11,p:18,f:4.6,kcal:157,serving:45,unit:"bar",pack:null},{id:163,name:"MyProtein Cookie",c:19.5,p:37.5,f:9.9,kcal:317,serving:1,unit:"cookie",pack:null},{id:164,name:"MyProtein Brownie",c:27,p:23,f:9.7,kcal:287,serving:75,unit:"g",pack:null},{id:165,name:"MyProtein High Protein Bar",c:24,p:30,f:6.3,kcal:273,serving:1,unit:"bar",pack:null},{id:166,name:"MyProtein Carb Crusher",c:12,p:21,f:8.2,kcal:206,serving:60,unit:"g",pack:null},{id:167,name:"Cocoa Nakd Bar",c:17,p:3,f:5,kcal:125,serving:1,unit:"bar",pack:null},{id:168,name:"Tesco Super Berry Granola",c:34.2,p:4.1,f:6.8,kcal:214,serving:50,unit:"g",pack:null},{id:169,name:"Frozen Peas",c:13.8,p:5.7,f:0.6,kcal:83,serving:100,unit:"g",pack:null},{id:170,name:"Quorn Chicken",c:4,p:11.5,f:1.5,kcal:76,serving:100,unit:"g",pack:null},{id:171,name:"Duck Egg",c:1,p:9,f:9.7,kcal:127,serving:1,unit:"whole",pack:null},{id:172,name:"Cyclic Dextrin",c:23.2,p:0,f:0,kcal:93,serving:25,unit:"g",pack:null},{id:173,name:"White Potato (Jacket)",c:17.2,p:2.1,f:0.2,kcal:91,serving:100,unit:"g",pack:null},{id:174,name:"Vegetable Stir Fry",c:6.4,p:3.0,f:3.8,kcal:80,serving:160,unit:"1/2 bag",pack:null},{id:175,name:"Hoisin Sauce",c:19.8,p:0.9,f:0.3,kcal:87,serving:90,unit:"1/2 pack",pack:null},{id:176,name:"Warburtons Thin Bagel White",c:23.7,p:4.9,f:0.6,kcal:120,serving:1,unit:"bagel",pack:null},{id:177,name:"Warburtons Thins Brown",c:18.1,p:4.0,f:1.1,kcal:100,serving:1,unit:"thin",pack:null},{id:178,name:"Rice Krispy Squares Bar",c:24.0,p:1.0,f:3.0,kcal:130,serving:1,unit:"bar",pack:null},{id:179,name:"Sweet Chilli Sauce",c:4.4,p:0.0,f:0.1,kcal:18,serving:10,unit:"g",pack:null},{id:180,name:"Diced Beef",c:0.4,p:22.2,f:3.4,kcal:122,serving:100,unit:"g",pack:null},{id:181,name:"Beef Stock Cube",c:2.1,p:1.0,f:0.3,kcal:16,serving:1,unit:"cube",pack:null},{id:182,name:"Low Fat Bolognese Sauce",c:6.0,p:1.2,f:0.1,kcal:33,serving:100,unit:"g",pack:null},{id:183,name:"Sharwood Hoisin Sauce",c:7.1,p:0.5,f:0.5,kcal:35,serving:1,unit:"tbsp",pack:null},{id:184,name:"Sun Dried Tomatoes",c:18.0,p:3.9,f:10.7,kcal:184,serving:100,unit:"g",pack:null},{id:185,name:"Kidney Beans",c:8.1,p:4.7,f:0.5,kcal:67,serving:100,unit:"g",pack:null},{id:186,name:"Colmans Chilli Con Carne Mix",c:8.0,p:1.2,f:0.47,kcal:43,serving:12.5,unit:"g",pack:null},{id:187,name:"Salsa",c:2.9,p:0.7,f:1.4,kcal:27,serving:50,unit:"g",pack:null},{id:188,name:"Philadelphia Light",c:5.2,p:7.4,f:11.0,kcal:148,serving:100,unit:"g",pack:null},{id:189,name:"Fajita Spice Mix",c:1.8,p:0.0,f:0.8,kcal:40,serving:1,unit:"half packet",pack:null},{id:190,name:"Mini White Wraps",c:14.4,p:2.0,f:2.3,kcal:88,serving:1,unit:"wrap",pack:null},{id:191,name:"Sharwood Balti Sauce",c:6.7,p:1.2,f:5.6,kcal:86,serving:105,unit:"g",pack:null},{id:192,name:"Schwartz Fish Lemon Parsley Sauce",c:4.8,p:0.9,f:2.8,kcal:49,serving:75,unit:"g",pack:null},{id:193,name:"Orzo",c:53.6,p:10.9,f:1.1,kcal:275,serving:75,unit:"g",pack:null},{id:194,name:"Brioche Bun",c:31.1,p:5.4,f:1.6,kcal:164,serving:1,unit:"bun",pack:null},{id:195,name:"Crunchy Taco Shells",c:7.6,p:0.8,f:2.5,kcal:58,serving:1,unit:"taco",pack:null},{id:196,name:"30% Reduced Fat Mature Cheese",c:0.2,p:8.4,f:6.6,kcal:94,serving:30,unit:"g",pack:null},{id:197,name:"Beef Burgers (Morrisons)",c:3.3,p:20.4,f:4.7,kcal:138,serving:1,unit:"burger",pack:null},{id:198,name:"Crunchy Nut Clusters",c:67.0,p:8.0,f:17.0,kcal:460,serving:100,unit:"g",pack:null},{id:199,name:"Tesco Low Fat Tikka Masala Sauce",c:9.5,p:0.8,f:1.8,kcal:58,serving:125,unit:"g",pack:null},{id:200,name:"Turkey Bacon",c:0.5,p:7.5,f:0.5,kcal:34,serving:1,unit:"rasher",pack:null},{id:201,name:"Crumpet",c:19.4,p:3.3,f:0.4,kcal:97,serving:1,unit:"crumpet",pack:null},{id:202,name:"Sweetcorn (tin)",c:15.0,p:3.6,f:2.5,kcal:104,serving:1,unit:"half can",pack:null},{id:203,name:"Jacket Potato",c:22.0,p:2.5,f:0.2,kcal:107,serving:100,unit:"g",pack:null},{id:204,name:"Brooklea Strawberry Protein Yogurt",c:9.0,p:25.0,f:1.0,kcal:144,serving:200,unit:"g",pack:null},{id:205,name:"Quaker Oat So Simple Golden Syrup",c:37.0,p:7.9,f:2.9,kcal:213,serving:1,unit:"pot",pack:null},{id:206,name:"Tesco Fish Pie Mix",c:2.2,p:13.3,f:0.0,kcal:62,serving:100,unit:"g",pack:null},{id:207,name:"Creme Fraiche 50% Less Fat",c:0.7,p:0.4,f:2.3,kcal:25,serving:1,unit:"tbsp",pack:null},{id:208,name:"Quorn Swedish Style Balls",c:5.6,p:9.9,f:3.5,kcal:98,serving:75,unit:"g",pack:null},{id:209,name:"Loyd Grossman Tomato & Basil Sauce",c:7.2,p:1.5,f:3.0,kcal:63,serving:100,unit:"g",pack:null},{id:210,name:"Tomato Puree",c:2.3,p:0.7,f:0.1,kcal:14,serving:1,unit:"tbsp",pack:null},{id:211,name:"Quorn Sausages",c:8.3,p:8.7,f:8.7,kcal:154,serving:2,unit:"sausages",pack:null},{id:212,name:"Bisto Reduced Salt Gravy",c:2.2,p:0.5,f:0.5,kcal:14,serving:50,unit:"ml",pack:null},{id:213,name:"Garlic & Herb Dressing",c:1.2,p:0.1,f:3.6,kcal:38,serving:1,unit:"tbsp",pack:null},{id:214,name:"20% Fat Lamb Mince",c:0.0,p:21.0,f:24.8,kcal:307,serving:125,unit:"g",pack:null},{id:215,name:"Shepherds Pie Mix",c:7.7,p:1.5,f:0.0,kcal:40,serving:12.5,unit:"g",pack:null},{id:216,name:"Tesco Plain Mini Naan",c:22.5,p:3.7,f:2.1,kcal:127,serving:1,unit:"naan",pack:null},{id:217,name:"Snack a Jacks Caramel Rice Cake",c:11.3,p:0.7,f:0.3,kcal:51,serving:1,unit:"cake",pack:null},{id:218,name:"Pomegranate",c:9.4,p:1.0,f:0.2,kcal:44,serving:80,unit:"g",pack:null},{id:219,name:"Richmond Meat Free Mince",c:10.0,p:22.0,f:6.3,kcal:192,serving:100,unit:"g",pack:null},{id:220,name:"Shreddies",c:28.2,p:4.3,f:0.7,kcal:146,serving:40,unit:"g",pack:null},{id:221,name:"Barenaked Protein Noodles",c:0.7,p:3.4,f:0.2,kcal:26,serving:125,unit:"g",pack:null},{id:222,name:"Bfree High Protein Wraps",c:4.0,p:12.0,f:2.9,kcal:100,serving:1,unit:"wrap",pack:null},{id:223,name:"Alpro Greek Style Yogurt Alt",c:2.6,p:5.8,f:3.3,kcal:68,serving:100,unit:"g",pack:null},{id:224,name:"Kallo Wholegrain Rice Cake",c:5.6,p:0.6,f:0.2,kcal:27,serving:1,unit:"cake",pack:null},{id:225,name:"Pataks Plant-Based Korma Sauce",c:11.0,p:3.0,f:6.0,kcal:118,serving:100,unit:"g",pack:null},{id:226,name:"Linwoods Milled Flaxseed",c:0.6,p:5.0,f:8.0,kcal:102,serving:20,unit:"g",pack:null},{id:227,name:"Tofoo Tempeh",c:1.2,p:14.3,f:7.3,kcal:139,serving:67,unit:"g",pack:null},{id:228,name:"Ashfield Meatballs",c:14.0,p:33.2,f:4.6,kcal:236,serving:150,unit:"g",pack:null},{id:229,name:"Cucina Tomato & Basil Sauce",c:5.7,p:1.1,f:0.5,kcal:31,serving:100,unit:"g",pack:null},{id:230,name:"Boil in a Bag Basmati",c:50.0,p:5.6,f:1.4,kcal:240,serving:1,unit:"half bag",pack:null},{id:231,name:"Mayflower Chinese Curry Sauce",c:8.4,p:1.2,f:3.8,kcal:77,serving:100,unit:"g",pack:null},{id:232,name:"McCain Lighter Frozen Chips",c:22.0,p:2.3,f:2.0,kcal:119,serving:100,unit:"g",pack:null},{id:233,name:"Light Cheese Slices",c:7.1,p:18.0,f:7.6,kcal:169,serving:100,unit:"g",pack:null},{id:234,name:"Chia Seeds",c:1.3,p:3.3,f:3.8,kcal:62,serving:15,unit:"g",pack:null},{id:235,name:"Chickpea Fusilli",c:56.0,p:14.0,f:3.3,kcal:193,serving:100,unit:"g",pack:null},{id:236,name:"Kefir Protein Yogurt",c:15.0,p:26.0,f:0.9,kcal:175,serving:250,unit:"g",pack:null},{id:237,name:"Sweet Potato Fries",c:24.0,p:3.3,f:7.6,kcal:242,serving:100,unit:"g",pack:null},{id:238,name:"Sweetcorn Cobette",c:7.85,p:1.7,f:0.9,kcal:48,serving:1,unit:"cob",pack:null},{id:239,name:"Huel Black Edition Chocolate",c:17.0,p:40.0,f:17.0,kcal:400,serving:90,unit:"g",pack:null},{id:240,name:"Ciabatta Roll",c:42.3,p:8.73,f:2.79,kcal:236,serving:1,unit:"roll",pack:null},{id:241,name:"Nandos Peri Peri Hot Sauce",c:2.4,p:0.9,f:2.8,kcal:43,serving:100,unit:"g",pack:null},{id:242,name:"Peach Tea Clear Whey",c:0.7,p:20.0,f:0.0,kcal:84,serving:24,unit:"g",pack:null},{id:243,name:"Feta Cheese",c:0.5,p:16.0,f:24.0,kcal:282,serving:100,unit:"g",pack:null},{id:244,name:"Butter",c:1.2,p:1.1,f:83.0,kcal:754,serving:100,unit:"g",pack:null},{id:245,name:"Aldi Protein Yogurt",c:3.5,p:12.0,f:0.5,kcal:68,serving:100,unit:"g",pack:null},{id:246,name:"Aldi Tzatziki",c:4.0,p:3.4,f:11.0,kcal:128,serving:100,unit:"g",pack:null},{id:247,name:"Aldi Udon Noodles",c:26.0,p:4.9,f:0.1,kcal:127,serving:100,unit:"g",pack:null},{id:248,name:"Aldi Full Fat Mayo",c:0.6,p:0.1,f:11.7,kcal:108,serving:15,unit:"g",pack:null},{id:249,name:"Black Olives",c:0.1,p:0.1,f:2.0,kcal:19,serving:15,unit:"g",pack:null},{id:250,name:"Aldi Cheese Full Fat",c:0.0,p:6.5,f:8.7,kcal:104,serving:25,unit:"g",pack:null},{id:251,name:"Aldi Chicken Sausages",c:9.2,p:16.5,f:5.0,kcal:148,serving:2,unit:"sausages",pack:null},{id:252,name:"Light Soy Sauce",c:1.2,p:0.2,f:0.1,kcal:6,serving:15,unit:"ml",pack:null},{id:253,name:"Pecan Nuts",c:4.0,p:2.6,f:20.0,kcal:196,serving:26,unit:"g",pack:null},{id:254,name:"Lasagne Sheets",c:70.0,p:12.5,f:1.9,kcal:356,serving:100,unit:"g",pack:null},{id:255,name:"Low Fat Cottage Cheese",c:3.1,p:12.5,f:0.8,kcal:70,serving:100,unit:"g",pack:null},{id:256,name:"Peas (fresh/frozen)",c:8.1,p:4.6,f:0.7,kcal:66,serving:100,unit:"g",pack:null},{id:257,name:"Nordpak Lighter",c:0.0,p:0.0,f:5.7,kcal:52,serving:10,unit:"g",pack:null},{id:258,name:"Knorr Zero Salt Veggie Stock",c:1.1,p:0.5,f:0.5,kcal:38,serving:100,unit:"ml",pack:null},{id:259,name:"Dreemy",c:73.0,p:3.5,f:15.0,kcal:441,serving:100,unit:"g",pack:null},{id:260,name:"Aldi Savour Bake Thins",c:68.0,p:13.9,f:6.9,kcal:400,serving:100,unit:"g",pack:null}];
+
+let packs={};
+FOODS.forEach(f=>{packs[f.id]=f.pack});
+
+const MEALS=['Breakfast','Lunch','Dinner','Pre-Workout','Post Workout','Snacks'];
+const DAYS=['Training Day 1','Training Day 2','Rest Day 1','Rest Day 2'];
+let rid=0;
+const nRow=()=>({id:++rid,foodId:null,qty:1});
+const nDay=()=>Object.fromEntries(MEALS.map(m=>[m,[nRow()]]));
+
+const S={
+  lewis:{label:'Lewis',targets:{kcal:2305,p:184,c:240,f:60},active:'Training Day 1',openMeals:new Set(['Breakfast']),days:Object.fromEntries(DAYS.map(d=>[d,nDay()]))},
+  charlotte:{label:'Charlotte',targets:{kcal:1800,p:130,c:180,f:55},active:'Training Day 1',openMeals:new Set(['Breakfast']),days:Object.fromEntries(DAYS.map(d=>[d,nDay()]))}
+};
+const shopR={lewis:Object.fromEntries(DAYS.map(d=>[d,0])),charlotte:Object.fromEntries(DAYS.map(d=>[d,0]))};
+
+const R=n=>Math.round(n*10)/10;
+const byId=id=>FOODS.find(f=>f.id===id);
+function rowM(r){if(!r.foodId)return{kcal:0,p:0,c:0,f:0};const f=byId(r.foodId);return{kcal:f.kcal*r.qty,p:f.p*r.qty,c:f.c*r.qty,f:f.f*r.qty}}
+function mealM(rows){return rows.reduce((a,r)=>{const v=rowM(r);a.kcal+=v.kcal;a.p+=v.p;a.c+=v.c;a.f+=v.f;return a},{kcal:0,p:0,c:0,f:0})}
+function dayM(u){return MEALS.reduce((a,m)=>{const v=mealM(S[u].days[S[u].active][m]);a.kcal+=v.kcal;a.p+=v.p;a.c+=v.c;a.f+=v.f;return a},{kcal:0,p:0,c:0,f:0})}
+
+function renderPanel(user){
+  const u=S[user],tot=dayM(user),t=u.targets,isC=user==='charlotte',other=isC?'lewis':'charlotte';
+
+  const tiles=[{l:'Kcal',v:tot.kcal,tgt:t.kcal,u:''},{l:'Protein',v:tot.p,tgt:t.p,u:'g'},{l:'Carbs',v:tot.c,tgt:t.c,u:'g'},{l:'Fat',v:tot.f,tgt:t.f,u:'g'}].map(m=>{
+    const pct=Math.min(100,(m.v/m.tgt)*100),over=m.v>m.tgt,rem=m.tgt-m.v;
+    return`<div class="mt"><div class="ml">${m.l}</div><div class="mv${over?' over':''}">${R(m.v)}</div><div class="mr2${over?' over':''}">${over?'+'+R(-rem):R(rem)}${m.u} ${over?'over':'left'}</div><div class="mbar"><div class="mfill${over?' over':''}" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+
+  const dts=DAYS.map(d=>`<button class="dt${u.active===d?' on':''}" onclick="setDay('${user}','${d}')">${d.replace('Training ','T').replace('Rest ','R')}</button>`).join('');
+  const tgts=[{k:'kcal',l:'Kcal'},{k:'p',l:'Pro'},{k:'c',l:'Carbs'},{k:'f',l:'Fat'}].map(({k,l})=>`<div class="tgt"><label>${l}</label><input type="number" value="${t[k]}" onchange="setTarget('${user}','${k}',this.value)"></div>`).join('');
+
+  const meals=MEALS.map(m=>renderMeal(user,m,other)).join('');
+  const sugg=renderSugg(user,tot);
+
+  document.getElementById('col-'+user).innerHTML=`
+    <div class="uhead">
+      <div class="uhead-top">
+        <span class="uname${isC?' cn':''}">${u.label}</span>
+        <div class="dtabs">${dts}</div>
+      </div>
+      <div class="mrow">${tiles}</div>
+      <div class="trow">${tgts}</div>
+    </div>
+    <div class="meals-area">${meals}${sugg}</div>`;
+}
+
+function renderMeal(user,meal,other){
+  const rows=S[user].days[S[user].active][meal];
+  const tot=mealM(rows);
+  const isOpen=S[user].openMeals.has(meal);
+  const ol=S[other].label;
+
+  const rowsH=rows.map(row=>{
+    const fd=row.foodId?byId(row.foodId):null;
+    const v=rowM(row);
+    const w=packWarn(row);
+    return`<div class="frow">
+      <div class="fw">
+        <select class="fsel" onchange="setFood('${user}','${meal}',${row.id},this.value)">
+          <option value="">Select food...</option>
+          ${FOODS.map(f=>`<option value="${f.id}"${row.foodId===f.id?' selected':''}>${f.name}</option>`).join('')}
+        </select>
+        ${w?`<div style="margin-top:2px">${w}</div>`:''}
+      </div>
+      <div class="step" style="visibility:${fd?'visible':'hidden'}">
+        <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},-0.5)">&#8722;</button>
+        <input class="sv" type="number" min="0.5" step="0.5" value="${row.qty}" onchange="setQ('${user}','${meal}',${row.id},this.value)">
+        <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},0.5)">+</button>
+      </div>
+      <div class="uc">${fd?fd.unit:''}</div>
+      <div class="nc">${fd?R(v.kcal):''}</div>
+      <div class="nc">${fd?R(v.p):''}</div>
+      <div class="nc">${fd?R(v.c):''}</div>
+      <div class="nc">${fd?R(v.f):''}</div>
+      <button class="db" onclick="event.stopPropagation();delRow('${user}','${meal}',${row.id})">&#215;</button>
+    </div>`;
+  }).join('');
+
+  return`<div class="mblock${isOpen?' open':''}">
+    <div class="mhead" onclick="toggleMeal('${user}','${meal}')">
+      <div class="mhl">
+        <span class="mn">${meal}</span>
+        <span class="mk">${R(tot.kcal)} kcal</span>
+        <div class="mmp"><span>P ${R(tot.p)}</span><span>C ${R(tot.c)}</span><span>F ${R(tot.f)}</span></div>
+      </div>
+      <button class="mcb" onclick="event.stopPropagation();copyMeal('${user}','${meal}','${other}')">Copy to ${ol}</button>
+      <span class="mchev">&#9660;</span>
+    </div>
+    <div class="mbody">
+      <div class="cheads">
+        <span class="ch" style="text-align:left">Food</span>
+        <span class="ch">Servings</span>
+        <span class="ch">Unit</span>
+        <span class="ch">Kcal</span>
+        <span class="ch">P</span>
+        <span class="ch">C</span>
+        <span class="ch">F</span>
+        <span class="ch"></span>
+      </div>
+      ${rowsH}
+      <div class="arz">
+        <button class="ab" onclick="event.stopPropagation();addRow('${user}','${meal}')">+ Add food</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function packWarn(row){
+  if(!row.foodId)return null;
+  const pack=packs[row.foodId];if(!pack)return null;
+  const fd=byId(row.foodId);if(!fd)return null;
+  const isW=['g','ml'].includes(fd.unit),total=isW?row.qty*fd.serving:row.qty;
+  if(total%pack!==0){const lo=Math.floor(total/pack)*pack||pack,hi=Math.ceil(total/pack)*pack;return`<span class="pw">Pack ${pack}${fd.unit}: try ${lo} or ${hi}</span>`}
+  return null;
+}
+
+function renderSugg(user,tot){
+  const t=S[user].targets,remK=t.kcal-tot.kcal,remP=t.p-tot.p;
+  if(remK<50)return'';
+  const items=FOODS.filter(f=>f.kcal>0&&f.kcal<=remK).map(f=>({f,score:remP>0?(f.p/f.kcal)*100:(f.c/f.kcal)*50})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,4);
+  if(!items.length)return'';
+  return`<div class="sugg"><div class="slbl">Suggestions &mdash; ${Math.round(remK)} kcal left</div><div class="chips">${items.map(({f})=>`<span class="chip" onclick="quickAdd('${user}',${f.id})">${f.name}<span class="cs">&nbsp;${f.kcal}kcal &middot; ${f.p}g P</span></span>`).join('')}</div></div>`;
+}
+
+
+// ── PERSISTENCE ──
+const SUPABASE_URL = 'https://tnzrmzqtwcxtyocccdgl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_nv4HQ8VhYkZjkNxc49xN9w_uNvp9nMJ';
+const SAVE_KEY = 'macros_v5';
+
+// Debounce cloud saves so rapid changes don't hammer the API
+let _saveTimer = null;
+function saveState() {
+  // Always save locally as backup
+  try {
+    const snap = buildSnap();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(snap));
+  } catch(e) {}
+  // Debounce cloud save by 1.5s
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => saveToCloud(), 1500);
+}
+
+function buildSnap() {
+  return {
+    lewis: { targets: S.lewis.targets, active: S.lewis.active, openMeals: [...S.lewis.openMeals], days: S.lewis.days },
+    charlotte: { targets: S.charlotte.targets, active: S.charlotte.active, openMeals: [...S.charlotte.openMeals], days: S.charlotte.days },
+    shopR: shopR
+  };
+}
+
+async function saveToCloud() {
+  try {
+    const snap = buildSnap();
+    // Upsert both users in one call as a single combined record
+    const res = await fetch(SUPABASE_URL + '/rest/v1/plans', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ id: 'shared', data: snap, updated_at: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error('Save failed: ' + res.status);
+    showSyncStatus('saved');
+  } catch(e) {
+    showSyncStatus('error');
+    console.warn('Cloud save failed', e);
+  }
+}
+
+async function loadFromCloud() {
+  try {
+    showSyncStatus('loading');
+    const res = await fetch(SUPABASE_URL + '/rest/v1/plans?id=eq.shared&select=data', {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      }
+    });
+    if (!res.ok) throw new Error('Load failed');
+    const rows = await res.json();
+    if (rows.length && rows[0].data && Object.keys(rows[0].data).length > 0) {
+      applySnap(rows[0].data);
+      showSyncStatus('loaded');
+      return true;
+    }
+    // Nothing in cloud yet - try localStorage fallback
+    return loadFromLocal();
+  } catch(e) {
+    console.warn('Cloud load failed, falling back to local', e);
+    showSyncStatus('offline');
+    return loadFromLocal();
+  }
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    applySnap(JSON.parse(raw));
+    return true;
+  } catch(e) { return false; }
+}
+
+function showSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const states = {
+    saved:   { text: '✓ Saved', color: 'var(--accent)' },
+    loaded:  { text: '✓ Loaded', color: 'var(--accent)' },
+    loading: { text: '⟳ Syncing...', color: 'var(--text3)' },
+    error:   { text: '⚠ Sync failed', color: 'var(--warn)' },
+    offline: { text: '● Offline', color: 'var(--text3)' }
+  };
+  const s = states[state] || states.offline;
+  el.textContent = s.text;
+  el.style.color = s.color;
+  if (state === 'saved' || state === 'loaded') {
+    setTimeout(() => { if(el) el.textContent = ''; }, 3000);
+  }
+}
+
+function applySnap(saved) {
+  ['lewis','charlotte'].forEach(u => {
+    if (!saved[u]) return;
+    if (saved[u].targets) S[u].targets = saved[u].targets;
+    if (saved[u].active) S[u].active = saved[u].active;
+    S[u].openMeals = new Set(saved[u].openMeals || ['Breakfast']);
+    if (saved[u].days) {
+      DAYS.forEach(d => { MEALS.forEach(m => {
+        if (saved[u].days[d] && saved[u].days[d][m]) {
+          S[u].days[d][m] = saved[u].days[d][m];
+          S[u].days[d][m].forEach(r => { r.qty = parseFloat(r.qty) || 1; if(!r.id) r.id = ++rid; });
+        }
+      });});
+    }
+  });
+  if (saved.shopR) {
+    DAYS.forEach(d => { ['lewis','charlotte'].forEach(u => {
+      if (saved.shopR[u] && saved.shopR[u][d] !== undefined) shopR[u][d] = saved.shopR[u][d];
+    });});
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    applySnap(JSON.parse(raw));
+    return true;
+  } catch(e) { return false; }
+}
+
+function exportData() {
+  try {
+    const snap = {
+      lewis: { targets: S.lewis.targets, active: S.lewis.active, openMeals: [...S.lewis.openMeals], days: S.lewis.days },
+      charlotte: { targets: S.charlotte.targets, active: S.charlotte.active, openMeals: [...S.charlotte.openMeals], days: S.charlotte.days },
+      shopR: shopR, exported: new Date().toISOString()
+    };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(snap,null,2)],{type:'application/json'}));
+    a.download = 'macros-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    toast('Exported — transfer this file to your other device and use Import');
+  } catch(e) { toast('Export failed'); }
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        applySnap(JSON.parse(ev.target.result));
+        saveState();
+        renderPanel('lewis'); renderPanel('charlotte'); renderShopReps();
+        toast('Data imported');
+      } catch(err) { toast('Import failed — check the file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function clearData() {
+  if (!confirm('Clear all planned meals and reset to defaults?')) return;
+  localStorage.removeItem(SAVE_KEY);
+  // Also clear cloud
+  fetch(SUPABASE_URL + '/rest/v1/plans?id=eq.shared', {
+    method: 'PATCH',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: {} })
+  });
+  location.reload();
+}
+
+// ── ACTIONS ──
+function setDay(u,d){S[u].active=d;renderPanel(u);saveState();}
+function setTarget(u,k,v){S[u].targets[k]=parseFloat(v)||0;renderPanel(u);saveState();}
+
+function toggleMeal(user,meal){
+  const s=S[user].openMeals;
+  if(s.has(meal))s.delete(meal);else s.add(meal);
+  renderPanel(user); saveState();
+}
+
+function setFood(u,m,id,val){
+  const r=S[u].days[S[u].active][m].find(r=>r.id===id);
+  if(r){r.foodId=val?parseInt(val):null;r.qty=1;}
+  renderPanel(u); saveState();
+}
+function setQ(u,m,id,val){
+  const r=S[u].days[S[u].active][m].find(r=>r.id===id);
+  if(r)r.qty=Math.max(0.5,parseFloat(val)||0.5);
+  renderPanel(u); saveState();
+}
+function stepQ(u,m,id,d){
+  const r=S[u].days[S[u].active][m].find(r=>r.id===id);
+  if(r){r.qty=Math.max(0.5,parseFloat((r.qty+d).toFixed(1)));renderPanel(u);saveState();}
+}
+function addRow(u,m){
+  S[u].days[S[u].active][m].push(nRow());
+  S[u].openMeals.add(m);
+  renderPanel(u); saveState();
+  // Scroll the new row into view
+  requestAnimationFrame(()=>{
+    const col=document.getElementById('col-'+u);
+    col.scrollTop=col.scrollHeight;
+  });
+}
+function delRow(u,m,id){
+  const rows=S[u].days[S[u].active][m],i=rows.findIndex(r=>r.id===id);
+  if(i!==-1)rows.splice(i,1);
+  if(!rows.length)rows.push(nRow());
+  renderPanel(u); saveState();
+}
+function copyMeal(from,meal,to){
+  const copied=S[from].days[S[from].active][meal].map(r=>({...r,id:++rid}));
+  const dest=S[to].days[S[to].active][meal];
+  if(!dest.some(r=>r.foodId))S[to].days[S[to].active][meal]=copied;
+  else S[to].days[S[to].active][meal].push(...copied.filter(r=>r.foodId));
+  S[to].openMeals.add(meal);
+  renderPanel(to); saveState();
+  toast(meal+' copied to '+S[to].label);
+}
+function quickAdd(u,foodId){
+  const rows=S[u].days[S[u].active]['Snacks'],last=rows[rows.length-1];
+  if(!last.foodId){last.foodId=foodId;last.qty=1;}else rows.push({id:++rid,foodId,qty:1});
+  S[u].openMeals.add('Snacks');
+  renderPanel(u); saveState();
+  toast('Added to Snacks');
+}
+
+// ── MOBILE SWITCH ──
+function mobSwitch(user){
+  document.querySelectorAll('.ucol').forEach(c=>c.classList.remove('mob-active'));
+  document.getElementById('col-'+user).classList.add('mob-active');
+  document.getElementById('mob-lewis').classList.toggle('on',user==='lewis');
+  document.getElementById('mob-charlotte').classList.toggle('on',user==='charlotte');
+}
+
+// ── SHOPPING ──
+function renderShopReps(){
+  ['lewis','charlotte'].forEach(user=>{
+    document.getElementById(user+'-reps').innerHTML=DAYS.map(day=>{
+      const n=shopR[user][day];
+      return`<div class="rrow">
+        <span class="rlbl">${day}</span>
+        <div class="rstep">
+          <button class="rb" onclick="stepRep('${user}','${day}',-1)">&#8722;</button>
+          <input class="rn${n>0?' on':''}" type="number" min="0" value="${n}" onchange="setRep('${user}','${day}',this.value)">
+          <button class="rb" onclick="stepRep('${user}','${day}',1)">+</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+function stepRep(u,d,delta){shopR[u][d]=Math.max(0,shopR[u][d]+delta);renderShopReps();saveState();}
+function setRep(u,d,val){shopR[u][d]=Math.max(0,parseInt(val)||0);saveState();}
+
+function generateList(){
+  const totals={};
+  ['lewis','charlotte'].forEach(user=>{
+    DAYS.forEach(day=>{
+      const reps=shopR[user][day];if(!reps)return;
+      MEALS.forEach(meal=>{
+        S[user].days[day][meal].forEach(row=>{
+          if(!row.foodId)return;
+          const fd=byId(row.foodId);if(!fd)return;
+          if(!totals[fd.id])totals[fd.id]={fd,servings:0};
+          totals[fd.id].servings+=row.qty*reps;
+        });
+      });
+    });
+  });
+  const items=Object.values(totals).sort((a,b)=>a.fd.name.localeCompare(b.fd.name));
+  document.getElementById('list-cnt').textContent=items.length+' item'+(items.length!==1?'s':'');
+  if(!items.length){document.getElementById('list-body').innerHTML='<div class="empty">No foods found. Make sure you have planned food and set day counts above zero.</div>';return;}
+  document.getElementById('list-body').innerHTML=items.map(({fd,servings})=>{
+    const isW=['g','ml'].includes(fd.unit),total=isW?servings*fd.serving:servings;
+    const amtStr=isW?R(total)+' '+fd.unit:R(total)+' x '+fd.unit;
+    const pack=packs[fd.id];
+    const warn=pack&&total%pack!==0?`<span class="pw">Buy ${Math.ceil(total/pack)} pack${Math.ceil(total/pack)>1?'s':''} &rarr; ${Math.ceil(total/pack)*pack}${isW?fd.unit:''}</span>`:'';
+    return`<div class="lrow"><span class="ln">${fd.name}</span><span class="la">${amtStr}</span><div class="lw">${warn}</div></div>`;
+  }).join('');
+}
+function copyList(){
+  const rows=document.querySelectorAll('.lrow');if(!rows.length)return;
+  const text=Array.from(rows).map(r=>r.querySelector('.ln').textContent.trim()+': '+r.querySelector('.la').textContent.trim()).join('\n');
+  navigator.clipboard.writeText(text).then(()=>toast('List copied')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('List copied');
+  });
+}
+
+// ── DATABASE ──
+function renderDB(){
+  document.getElementById('db-body').innerHTML=FOODS.map(f=>`
+    <tr><td>${f.name}</td><td>${f.serving}</td><td>${f.unit}</td><td>${f.kcal}</td><td>${f.p}</td><td>${f.c}</td><td>${f.f}</td>
+    <td><input class="pi" type="number" min="0" placeholder="—" value="${packs[f.id]??''}" onchange="packs[${f.id}]=this.value?parseFloat(this.value):null;toast('Saved')"></td></tr>`
+  ).join('');
+}
+
+// ── NAV ──
+function showTab(name,btn){
+  document.querySelectorAll('.view').forEach(v=>{v.classList.remove('on');v.style.display='none';});
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const el=document.getElementById('view-'+name);
+  el.style.display='flex';el.classList.add('on');btn.classList.add('on');
+  if(name==='database')renderDB();
+}
+
+// ── TOAST ──
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ── INIT ──
+loadFromLocal(); renderPanel('lewis'); renderPanel('charlotte'); renderShopReps();
+loadFromCloud().then(() => { renderPanel('lewis'); renderPanel('charlotte'); renderShopReps(); });
+renderPanel('charlotte');
+renderShopReps();
+document.getElementById('view-planner').style.display='flex';
+</script>
+</body>
+</html>
