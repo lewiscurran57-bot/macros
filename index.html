@@ -99,16 +99,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .mcb:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-d)}
 
 /* Meal body — shown when .open, hidden when not */
-.mbody{display:none;flex-direction:column}
+.mbody{display:none;flex-direction:column;background:var(--panel)}
 .mblock.open .mbody{display:flex}
 
 /* Column headers */
-.cheads{display:grid;grid-template-columns:1fr 78px 30px 34px 30px 30px 30px 22px;gap:3px;padding:3px 11px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.05)}
+.cheads{display:grid;grid-template-columns:14px 1fr 82px 48px 36px 32px 32px 32px 24px;gap:4px;padding:4px 12px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.05)}
 .ch{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--text4);text-align:right}
 .ch:first-child{text-align:left}
 
 /* Food rows — natural height, always fully visible */
-.frow{display:grid;grid-template-columns:1fr 78px 30px 34px 30px 30px 30px 22px;gap:3px;padding:3px 11px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
+.frow{background:var(--panel);display:grid;grid-template-columns:14px 1fr 82px 48px 36px 32px 32px 32px 24px;gap:4px;padding:5px 12px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
 .frow:last-child{border-bottom:none}
 
 .fw{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -205,6 +205,52 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .pw-btn:hover{filter:brightness(1.1)}
 .pw-err{font-size:12px;color:var(--red);text-align:center;min-height:16px}
 
+
+/* ── DRAG HANDLE ── */
+.drag-handle{cursor:grab;color:var(--text4);font-size:14px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;padding:2px}
+.drag-handle:active{cursor:grabbing;color:var(--text2)}
+.frow.dragging{opacity:0.4;background:var(--card2)}
+.frow.drag-over{border-top:2px solid var(--accent)}
+
+/* ── SERVING SIZE LABEL ── */
+.srv-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── DAILY VIEW ── */
+.dv2{flex-direction:column;overflow-y:auto;background:var(--bg)}
+.dvi{max-width:680px;margin:0 auto;padding:20px 16px 56px;width:100%}
+.dv-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.dv-hdr h2{font-size:19px;font-weight:600;letter-spacing:-.3px}
+.dv-person-tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px;gap:2px}
+.dv-meal{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.dv-meal-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border)}
+.dv-meal-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--text2)}
+.dv-meal-kcal{font-family:'DM Mono',monospace;font-size:12px;color:var(--text)}
+.dv-meal-macros{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);display:flex;gap:8px}
+.dv-food-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.04);gap:8px}
+.dv-food-row:last-child{border-bottom:none}
+.dv-food-name{font-size:13px;color:var(--text);flex:1}
+.dv-food-amt{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);white-space:nowrap;font-weight:500}
+.dv-food-macros{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);display:flex;gap:6px;white-space:nowrap}
+.dv-total{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
+.dv-tot-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.dv-tot-lbl{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)}
+.dv-tot-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:var(--text)}
+.dv-empty{padding:20px;text-align:center;color:var(--text3);font-size:12px}
+
+/* ── MANUAL SAVE BUTTON ── */
+.save-btn{padding:5px 14px;background:var(--accent);border:none;border-radius:5px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.save-btn:hover{filter:brightness(1.1)}
+.save-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── SUGGESTION MEAL PICKER ── */
+.sugg-picker{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:flex-end;justify-content:center}
+.sugg-picker-card{background:var(--panel);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:16px;width:100%;max-width:480px}
+.sugg-picker-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;text-align:center}
+.sugg-picker-meals{display:flex;flex-direction:column;gap:6px}
+.sugg-picker-meal{padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;text-align:left;transition:all .12s}
+.sugg-picker-meal:hover{border-color:var(--accent);background:var(--accent-d)}
+.sugg-picker-cancel{margin-top:8px;width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(5px);background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:8px 16px;border-radius:var(--r);font-size:12px;font-weight:500;opacity:0;transition:all .2s;pointer-events:none;z-index:9999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -245,16 +291,33 @@ input[type=number]{-moz-appearance:textfield}
   .tgt label{font-size:7px}
   .tgt input{font-size:10px}
 
-  /* Mobile: hide unit col, show all 4 macros */
-  .cheads,.frow{grid-template-columns:1fr 68px 0 32px 28px 28px 28px 22px}
-  .ch:nth-child(3),.frow .uc{visibility:hidden;width:0;min-width:0;padding:0;overflow:hidden}
+  /* Mobile: simplified layout */
+  .cheads{display:none}
+  .frow{grid-template-columns:20px 1fr 90px 28px;gap:6px;padding:8px 10px}
+  /* hide per-serving, kcal, P, C, F columns on mobile - show in sub-row instead */
+  .frow .srv-lbl,.frow .nc{display:none}
+  .frow .drag-handle{font-size:16px}
+  /* show macro summary below the food select */
+  .frow-macros{display:flex;gap:8px;margin-top:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)}
 
   /* Bigger touch targets */
-  .sb{width:28px;height:32px}
-  .mhead{padding:8px 12px}
-  .mn{font-size:11px}
-  .arz{padding:5px 12px 8px}
-  .ab{padding:6px 12px;font-size:12px}
+  .sb{width:32px;height:36px;font-size:18px}
+  .sv{font-size:14px;font-weight:600;font-family:'DM Mono',monospace}
+  .mhead{padding:10px 12px}
+  .mn{font-size:12px}
+  .mk{font-size:13px}
+  .nc{font-size:12px}
+  .fsel{font-size:13px;padding:6px 22px 6px 8px}
+  .arz{padding:6px 10px 10px}
+  .ab{padding:9px 14px;font-size:13px;width:100%;justify-content:center}
+  .step{width:100%}
+  .sv{font-size:15px;font-weight:600;min-width:32px}
+  .sb{width:34px;height:36px}
+  .fsel{font-size:13px}
+  .ab{font-size:13px;padding:9px 14px;width:100%}
+  .arz{padding:6px 10px 10px}
+
+  .frow{padding:7px 10px}
 
   /* Shopping */
   .sgrid{grid-template-columns:1fr}
@@ -283,13 +346,14 @@ input[type=number]{-moz-appearance:textfield}
     <div style="display:flex;align-items:center;gap:10px"><div class="wm">mac<em>r</em>os</div><span id="sync-status" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)"></span></div>
     <div class="nav">
       <button class="nb on" onclick="showTab('planner',this)">Planner</button>
+      <button class="nb" onclick="showTab('daily',this)">Day View</button>
       <button class="nb" onclick="showTab('shopping',this)">Shopping</button>
       <button class="nb" onclick="showTab('database',this)">Database</button>
     </div>
     <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-      <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'" title="Save plan as JSON file — import on another device">Export</button>
-      <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'" title="Load a previously exported plan">Import</button>
-      <button onclick="clearData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'" title="Reset everything">Reset</button>
+      <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices">Save</button>
+      <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as JSON backup">Export</button>
+      <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Import JSON backup">Import</button>
     </div>
   </header>
 
@@ -332,6 +396,34 @@ input[type=number]{-moz-appearance:textfield}
         <div class="lhd"><span class="lt">Items</span><span class="lc" id="list-cnt">—</span></div>
         <div id="list-body"><div class="empty">Set day counts above and generate.</div></div>
       </div>
+    </div>
+  </div>
+
+
+  <!-- DAILY VIEW -->
+  <div id="view-daily" class="view dv2">
+    <div class="dvi">
+      <div class="dv-hdr">
+        <h2>Day View</h2>
+        <div class="dv-person-tabs">
+          <button class="nb on" id="dv-lewis-btn" onclick="switchDayView('lewis',this)">Lewis</button>
+          <button class="nb" id="dv-charlotte-btn" onclick="switchDayView('charlotte',this)">Charlotte</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button onclick="copyDayView()" style="padding:7px 16px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer">📋 Copy</button>
+        <button onclick="shareDayView()" style="padding:7px 16px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer">↗ Share</button>
+      </div>
+      <div id="dv-content"></div>
+    </div>
+  </div>
+
+  <!-- SUGGESTION MEAL PICKER -->
+  <div class="sugg-picker" id="sugg-picker" style="display:none" onclick="if(event.target===this)closeSuggPicker()">
+    <div class="sugg-picker-card">
+      <div class="sugg-picker-title" id="sugg-picker-title">Add to which meal?</div>
+      <div class="sugg-picker-meals" id="sugg-picker-meals"></div>
+      <button class="sugg-picker-cancel" onclick="closeSuggPicker()">Cancel</button>
     </div>
   </div>
 
@@ -435,7 +527,14 @@ function renderMeal(user,meal,other){
     const fd=row.foodId?byId(row.foodId):null;
     const v=rowM(row);
     const w=packWarn(row);
-    return`<div class="frow">
+    const servingLabel = fd ? (fd.serving + ' ' + fd.unit) : '';
+    return`<div class="frow" draggable="true" data-row-id="${row.id}" data-user="${user}" data-meal="${meal}"
+      ondragstart="onRowDragStart(event)"
+      ondragover="onRowDragOver(event)"
+      ondragleave="onRowDragLeave(event)"
+      ondrop="onRowDrop(event,'${user}','${meal}')"
+      ondragend="onRowDragEnd(event)">
+      <div class="drag-handle" title="Drag to reorder or move to another meal">&#8942;&#8942;</div>
       <div class="fw">
         <select class="fsel" onchange="setFood('${user}','${meal}',${row.id},this.value)">
           <option value="">Select food...</option>
@@ -448,13 +547,20 @@ function renderMeal(user,meal,other){
         <input class="sv" type="number" min="0.5" step="0.5" value="${row.qty}" onchange="setQ('${user}','${meal}',${row.id},this.value)">
         <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},0.5)">+</button>
       </div>
-      <div class="uc">${fd?fd.unit:''}</div>
+      <div class="srv-lbl">${servingLabel}</div>
       <div class="nc">${fd?R(v.kcal):''}</div>
       <div class="nc">${fd?R(v.p):''}</div>
       <div class="nc">${fd?R(v.c):''}</div>
       <div class="nc">${fd?R(v.f):''}</div>
       <button class="db" onclick="event.stopPropagation();delRow('${user}','${meal}',${row.id})">&#215;</button>
-    </div>`;
+    </div>
+    ${fd ? `<div class="frow-macros" style="padding:0 10px 6px 44px">
+      <span>${servingLabel}</span>
+      <span>&#8226; ${R(v.kcal)} kcal</span>
+      <span>P ${R(v.p)}g</span>
+      <span>C ${R(v.c)}g</span>
+      <span>F ${R(v.f)}g</span>
+    </div>` : ''}`;;
   }).join('');
 
   return`<div class="mblock${isOpen?' open':''}">
@@ -469,9 +575,10 @@ function renderMeal(user,meal,other){
     </div>
     <div class="mbody">
       <div class="cheads">
+        <span class="ch"></span>
         <span class="ch" style="text-align:left">Food</span>
         <span class="ch">Servings</span>
-        <span class="ch">Unit</span>
+        <span class="ch">Per serving</span>
         <span class="ch">Kcal</span>
         <span class="ch">P</span>
         <span class="ch">C</span>
@@ -509,17 +616,38 @@ const SUPABASE_URL = 'https://tnzrmzqtwcxtyocccdgl.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nv4HQ8VhYkZjkNxc49xN9w_uNvp9nMJ';
 const SAVE_KEY = 'macros_v5';
 
-// Debounce cloud saves so rapid changes don't hammer the API
-let _saveTimer = null;
+// Manual save only — auto-save disabled
 function saveState() {
-  // Always save locally as backup
+  // Save locally only (instant, silent)
   try {
     const snap = buildSnap();
     localStorage.setItem(SAVE_KEY, JSON.stringify(snap));
   } catch(e) {}
-  // Debounce cloud save by 1.5s
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => saveToCloud(), 1500);
+  // Mark unsaved changes
+  setSaveIndicator('unsaved');
+}
+
+function setSaveIndicator(state) {
+  const el = document.getElementById('save-btn');
+  if (!el) return;
+  if (state === 'unsaved') {
+    el.textContent = 'Save ●';
+    el.style.background = 'var(--warn)';
+  } else if (state === 'saving') {
+    el.textContent = 'Saving...';
+    el.disabled = true;
+  } else if (state === 'saved') {
+    el.textContent = 'Saved ✓';
+    el.style.background = 'var(--accent)';
+    el.disabled = false;
+    setTimeout(() => { if(el) { el.textContent = 'Save'; el.style.background = 'var(--accent)'; }}, 2000);
+  }
+}
+
+async function manualSave() {
+  setSaveIndicator('saving');
+  await saveToCloud();
+  setSaveIndicator('saved');
 }
 
 function buildSnap() {
@@ -681,6 +809,174 @@ function clearData() {
   location.reload();
 }
 
+
+// ── DRAG AND DROP ──
+let _dragRowId = null;
+let _dragUser = null;
+let _dragFromMeal = null;
+
+function onRowDragStart(e) {
+  _dragRowId = parseInt(e.currentTarget.dataset.rowId);
+  _dragUser = e.currentTarget.dataset.user;
+  _dragFromMeal = e.currentTarget.dataset.meal;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onRowDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onRowDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onRowDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function onRowDrop(e, user, toMeal) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (_dragRowId === null) return;
+
+  const fromRows = S[_dragUser].days[S[_dragUser].active][_dragFromMeal];
+  const rowIdx = fromRows.findIndex(r => r.id === _dragRowId);
+  if (rowIdx === -1) return;
+  const row = fromRows[rowIdx];
+
+  // Get target position
+  const targetId = parseInt(e.currentTarget.dataset.rowId);
+
+  if (_dragFromMeal === toMeal && _dragUser === user) {
+    // Reorder within same meal
+    fromRows.splice(rowIdx, 1);
+    const toIdx = fromRows.findIndex(r => r.id === targetId);
+    fromRows.splice(toIdx >= 0 ? toIdx : fromRows.length, 0, row);
+  } else {
+    // Move to different meal
+    fromRows.splice(rowIdx, 1);
+    if (!fromRows.length) fromRows.push(nRow());
+    const toRows = S[user].days[S[user].active][toMeal];
+    const toIdx = toRows.findIndex(r => r.id === targetId);
+    toRows.splice(toIdx >= 0 ? toIdx : toRows.length, 0, row);
+    S[user].openMeals.add(toMeal);
+    if (_dragFromMeal !== toMeal) renderPanel(_dragUser === user ? user : _dragUser);
+  }
+
+  _dragRowId = null;
+  renderPanel(user);
+  saveState();
+}
+
+// Touch drag support for mobile (simplified — tap meal head to move selected row)
+let _touchSelected = null;
+function touchSelectRow(user, meal, rowId) {
+  _touchSelected = { user, meal, rowId };
+  toast('Row selected — tap a meal header to move it there');
+}
+
+// ── DAILY VIEW ──
+let _dvUser = 'lewis';
+
+function switchDayView(user, btn) {
+  _dvUser = user;
+  document.querySelectorAll('.dv-person-tabs .nb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderDayView();
+}
+
+function renderDayView() {
+  const u = S[_dvUser];
+  const tot = dayM(_dvUser);
+  const t = u.targets;
+  let html = '';
+
+  MEALS.forEach(meal => {
+    const rows = u.days[u.active][meal].filter(r => r.foodId);
+    if (!rows.length) return;
+    const mt = mealM(rows);
+    html += `<div class="dv-meal">
+      <div class="dv-meal-head">
+        <span class="dv-meal-name">${meal}</span>
+        <span class="dv-meal-kcal">${R(mt.kcal)} kcal</span>
+        <div class="dv-meal-macros"><span>P ${R(mt.p)}g</span><span>C ${R(mt.c)}g</span><span>F ${R(mt.f)}g</span></div>
+      </div>
+      ${rows.map(row => {
+        const fd = byId(row.foodId);
+        const v = rowM(row);
+        const isWeight = ['g','ml'].includes(fd.unit);
+        const totalAmt = isWeight ? R(row.qty * fd.serving) + fd.unit : R(row.qty) + ' x ' + fd.serving + ' ' + fd.unit;
+        return `<div class="dv-food-row">
+          <span class="dv-food-name">${fd.name}</span>
+          <span class="dv-food-amt">${totalAmt}</span>
+          <div class="dv-food-macros"><span>${R(v.kcal)}kcal</span><span>P${R(v.p)}</span><span>C${R(v.c)}</span><span>F${R(v.f)}</span></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+
+  if (!html) html = '<div class="dv-empty">No foods planned for ' + u.active + ' yet.</div>';
+
+  // Totals bar
+  const pctK = Math.min(100, (tot.kcal/t.kcal)*100);
+  const pctP = Math.min(100, (tot.p/t.p)*100);
+  const pctC = Math.min(100, (tot.c/t.c)*100);
+  const pctF = Math.min(100, (tot.f/t.f)*100);
+  html += `<div class="dv-total">
+    <div class="dv-tot-item"><div class="dv-tot-lbl">Kcal</div><div class="dv-tot-val">${R(tot.kcal)}</div><div class="mbar" style="width:100%"><div class="mfill${tot.kcal>t.kcal?' over':''}" style="width:${pctK}%"></div></div><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);margin-top:2px">${t.kcal} target</div></div>
+    <div class="dv-tot-item"><div class="dv-tot-lbl">Protein</div><div class="dv-tot-val">${R(tot.p)}g</div><div class="mbar" style="width:100%"><div class="mfill${tot.p>t.p?' over':''}" style="width:${pctP}%"></div></div><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);margin-top:2px">${t.p}g target</div></div>
+    <div class="dv-tot-item"><div class="dv-tot-lbl">Carbs</div><div class="dv-tot-val">${R(tot.c)}g</div><div class="mbar" style="width:100%"><div class="mfill${tot.c>t.c?' over':''}" style="width:${pctC}%"></div></div><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);margin-top:2px">${t.c}g target</div></div>
+    <div class="dv-tot-item"><div class="dv-tot-lbl">Fat</div><div class="dv-tot-val">${R(tot.f)}g</div><div class="mbar" style="width:100%"><div class="mfill${tot.f>t.f?' over':''}" style="width:${pctF}%"></div></div><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);margin-top:2px">${t.f}g target</div></div>
+  </div>`;
+
+  document.getElementById('dv-content').innerHTML = html;
+}
+
+function buildDayViewText() {
+  const u = S[_dvUser];
+  const tot = dayM(_dvUser);
+  const t = u.targets;
+  let txt = 'MACROS — ' + _dvUser.toUpperCase() + ' — ' + u.active + '\n';
+  txt += '═'.repeat(36) + '\n\n';
+  MEALS.forEach(meal => {
+    const rows = u.days[u.active][meal].filter(r => r.foodId);
+    if (!rows.length) return;
+    const mt = mealM(rows);
+    txt += meal.toUpperCase() + ' — ' + R(mt.kcal) + ' kcal\n';
+    txt += '─'.repeat(28) + '\n';
+    rows.forEach(row => {
+      const fd = byId(row.foodId);
+      const v = rowM(row);
+      const isWeight = ['g','ml'].includes(fd.unit);
+      const amt = isWeight ? R(row.qty * fd.serving) + fd.unit : R(row.qty) + ' x ' + fd.serving + ' ' + fd.unit;
+      txt += '  ' + fd.name + ' (' + amt + ')\n';
+      txt += '    ' + R(v.kcal) + 'kcal  P:' + R(v.p) + 'g  C:' + R(v.c) + 'g  F:' + R(v.f) + 'g\n';
+    });
+    txt += '\n';
+  });
+  txt += '═'.repeat(36) + '\n';
+  txt += 'TOTAL: ' + R(tot.kcal) + ' kcal  P:' + R(tot.p) + 'g  C:' + R(tot.c) + 'g  F:' + R(tot.f) + 'g\n';
+  txt += 'Target: ' + t.kcal + ' kcal  P:' + t.p + 'g  C:' + t.c + 'g  F:' + t.f + 'g';
+  return txt;
+}
+
+function copyDayView() {
+  const txt = buildDayViewText();
+  navigator.clipboard.writeText(txt).then(() => toast('Copied to clipboard')).catch(() => toast('Copy failed'));
+}
+
+function shareDayView() {
+  const txt = buildDayViewText();
+  if (navigator.share) {
+    navigator.share({ title: 'Macros Day View', text: txt });
+  } else {
+    navigator.clipboard.writeText(txt).then(() => toast('Copied — paste to share')).catch(() => toast('Share not supported'));
+  }
+}
 // ── ACTIONS ──
 function setDay(u,d){S[u].active=d;renderPanel(u);saveState();}
 function setTarget(u,k,v){S[u].targets[k]=parseFloat(v)||0;renderPanel(u);saveState();}
@@ -712,7 +1008,7 @@ function addRow(u,m){
   // Scroll the new row into view
   requestAnimationFrame(()=>{
     const col=document.getElementById('col-'+u);
-    col.scrollTop=col.scrollHeight;
+    // no auto-scroll
   });
 }
 function delRow(u,m,id){
@@ -730,12 +1026,35 @@ function copyMeal(from,meal,to){
   renderPanel(to); saveState();
   toast(meal+' copied to '+S[to].label);
 }
-function quickAdd(u,foodId){
-  const rows=S[u].days[S[u].active]['Snacks'],last=rows[rows.length-1];
-  if(!last.foodId){last.foodId=foodId;last.qty=1;}else rows.push({id:++rid,foodId,qty:1});
-  S[u].openMeals.add('Snacks');
-  renderPanel(u); saveState();
-  toast('Added to Snacks');
+let _pendingSugg = null;
+
+function quickAdd(user, foodId) {
+  _pendingSugg = { user, foodId };
+  const fd = byId(foodId);
+  document.getElementById('sugg-picker-title').textContent = 'Add "' + fd.name + '" to:';
+  document.getElementById('sugg-picker-meals').innerHTML = MEALS.map(m => {
+    const tot = mealM(S[user].days[S[user].active][m]);
+    return `<button class="sugg-picker-meal" onclick="confirmSuggAdd('${m}')">${m} <span style="font-size:11px;color:var(--text3);float:right">${R(tot.kcal)} kcal</span></button>`;
+  }).join('');
+  document.getElementById('sugg-picker').style.display = 'flex';
+}
+
+function confirmSuggAdd(meal) {
+  if (!_pendingSugg) return;
+  const { user, foodId } = _pendingSugg;
+  const rows = S[user].days[S[user].active][meal];
+  const last = rows[rows.length-1];
+  if (!last.foodId) { last.foodId = foodId; last.qty = 1; }
+  else rows.push({ id: ++rid, foodId, qty: 1 });
+  S[user].openMeals.add(meal);
+  renderPanel(user); saveState();
+  toast('Added to ' + meal);
+  closeSuggPicker();
+}
+
+function closeSuggPicker() {
+  document.getElementById('sugg-picker').style.display = 'none';
+  _pendingSugg = null;
 }
 
 // ── MOBILE SWITCH ──
@@ -814,6 +1133,7 @@ function showTab(name,btn){
   const el=document.getElementById('view-'+name);
   el.style.display='flex';el.classList.add('on');btn.classList.add('on');
   if(name==='database')renderDB();
+  if(name==='daily')renderDayView();
 }
 
 // ── TOAST ──
