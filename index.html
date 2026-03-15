@@ -103,12 +103,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .mblock.open .mbody{display:flex}
 
 /* Column headers */
-.cheads{display:grid;grid-template-columns:14px 1fr 76px 46px 34px 30px 30px 30px 22px 22px;gap:4px;padding:4px 12px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.05)}
+.cheads{display:grid;grid-template-columns:1fr 76px 46px 34px 30px 30px 30px 22px 22px;gap:4px;padding:4px 12px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.05)}
 .ch{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--text4);text-align:right}
 .ch:first-child{text-align:left}
 
 /* Food rows — natural height, always fully visible */
-.frow{background:var(--panel);display:grid;grid-template-columns:14px 1fr 76px 46px 34px 30px 30px 30px 22px 22px;gap:4px;padding:5px 12px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
+.frow{background:var(--panel);display:grid;grid-template-columns:1fr 76px 46px 34px 30px 30px 30px 22px 22px;gap:4px;padding:5px 12px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
 .frow:last-child{border-bottom:none}
 
 .fw{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -268,64 +268,101 @@ input[type=number]{-moz-appearance:textfield}
    MOBILE — single column, person tabs
 ══════════════════════════════════════ */
 @media(max-width:680px){
-  .hdr{padding:0 12px}
-  .nb{padding:5px 10px;font-size:11px}
+  .hdr{padding:0 10px}
+  .nb{padding:5px 8px;font-size:11px}
 
   /* Show mobile switcher, hide one column */
   .mob-switch{display:flex}
   .pv{flex-direction:column}
-
-  /* Both columns stack but only active one shows */
   .ucol{border-right:none;border-bottom:1px solid var(--border);display:none}
   .ucol.mob-active{display:flex}
 
-  /* Tighter header on mobile */
+  /* Header */
   .uhead{padding:10px 12px 8px}
   .uhead-top{margin-bottom:8px}
   .uname{font-size:14px}
   .mrow{gap:4px;margin-bottom:6px}
   .mt{padding:5px 6px}
-  .mv{font-size:13px}
+  .mv{font-size:14px}
   .trow{gap:3px}
   .tgt{padding:2px 5px}
   .tgt label{font-size:7px}
-  .tgt input{font-size:10px}
+  .tgt input{font-size:11px}
 
-  /* Mobile: simplified layout */
-  .cheads{display:none}
-  .frow{grid-template-columns:20px 1fr 90px 28px;gap:6px;padding:8px 10px}
-  /* hide per-serving, kcal, P, C, F columns on mobile - show in sub-row instead */
-  .frow .srv-lbl,.frow .nc{display:none}
-  .frow .drag-handle{font-size:16px}
-  /* show macro summary below the food select */
-  .frow-macros{display:flex;gap:8px;margin-top:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)}
-
-  /* Bigger touch targets */
-  .sb{width:32px;height:36px;font-size:18px}
-  .sv{font-size:14px;font-weight:600;font-family:'DM Mono',monospace}
+  /* Meal header */
   .mhead{padding:10px 12px}
   .mn{font-size:12px}
   .mk{font-size:13px}
-  .nc{font-size:12px}
-  .fsel{font-size:13px;padding:6px 22px 6px 8px}
-  .arz{padding:6px 10px 10px}
-  .ab{padding:9px 14px;font-size:13px;width:100%;justify-content:center}
-  .step{width:100%}
-  .sv{font-size:15px;font-weight:600;min-width:32px}
-  .sb{width:34px;height:36px}
-  .fsel{font-size:13px}
-  .ab{font-size:13px;padding:9px 14px;width:100%}
-  .arz{padding:6px 10px 10px}
+  .cheads{display:none}
 
-  .frow{padding:7px 10px}
+  /* ── FOOD ROW — two-line card layout on mobile ── */
+  /* Line 1: drag | food button | delete */
+  /* Line 2: live serving | stepper | copy */
+  .frow{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    padding:0;
+    border-bottom:1px solid rgba(255,255,255,0.06)
+  }
+  .frow .fw{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 10px 4px;
+  }
+  .frow .drag-handle{font-size:15px;flex-shrink:0;padding:0 2px}
+  .frow .fw .fsel{flex:1;font-size:13px;padding:7px 10px;min-width:0}
+  .frow .db{flex-shrink:0;width:28px;height:28px;font-size:14px}
+  /* Hide the grid-only columns */
+  .frow .nc{display:none}
+  /* Second line: amount label + stepper + copy */
+  .frow-bottom{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 10px 8px 36px;
+  }
+  .frow .live-srv{
+    font-size:11px;
+    color:var(--accent);
+    font-family:'DM Mono',monospace;
+    min-width:52px;
+    flex-shrink:0;
+    white-space:nowrap
+  }
+  .frow .step{
+    display:flex;
+    align-items:center;
+    flex:1;
+  }
+  .frow .sb{width:36px;height:36px;font-size:18px;flex-shrink:0}
+  .frow .sv{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;flex:1;text-align:center;min-width:40px}
+  .frow .crf{font-size:11px;padding:4px 8px;flex-shrink:0}
+  /* Pack warning */
+  .frow .fw .pw,.frow .fw .pw-ok{font-size:9px;margin-top:2px;display:block}
+
+  /* Add food button */
+  .arz{padding:6px 10px 10px}
+  .ab{font-size:13px;padding:10px 14px;width:100%;justify-content:center}
 
   /* Shopping */
   .sgrid{grid-template-columns:1fr}
   .si{padding:18px 14px 48px}
 
-  /* Database — scrollable table */
+  /* Database */
   .di{padding:18px 14px 48px}
   .dtbl{font-size:10px;display:block;overflow-x:auto}
+
+  /* Day view */
+  .dv-food-row{flex-direction:column;align-items:flex-start;gap:4px}
+  .dv-food-macros{flex-wrap:wrap}
+
+  /* Saved days */
+  .sdl-item{flex-direction:column;align-items:flex-start}
+
+  /* Days planned row */
+  .dplan-row{flex-wrap:wrap;gap:6px;padding:6px 10px}
 }
 
 /* ── FOOD PICKER MODAL ── */
@@ -746,26 +783,28 @@ function renderMeal(user,meal,other){
       ondragleave="onRowDragLeave(event)"
       ondrop="onRowDrop(event,'${user}','${meal}')"
       ondragend="onRowDragEnd(event)">
-      <div class="drag-handle" title="Drag to reorder or move to another meal">&#8942;&#8942;</div>
       <div class="fw">
-        <button class="fsel" style="text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px" onclick="event.stopPropagation();openFoodPicker('${user}','${meal}',${row.id})">
+        <div class="drag-handle" title="Drag to reorder">&#8942;&#8942;</div>
+        <button class="fsel" style="text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px;flex:1" onclick="event.stopPropagation();openFoodPicker('${user}','${meal}',${row.id})">
           <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${fd?fd.name:'Select food...'}</span>
           <span style="color:var(--text3);font-size:10px;flex-shrink:0">&#9660;</span>
         </button>
-        ${w?`<div style="margin-top:2px">${w}</div>`:''}
+        <button class="db" onclick="event.stopPropagation();delRow('${user}','${meal}',${row.id})">&#215;</button>
       </div>
-      <div class="step" style="visibility:${fd?'visible':'hidden'}">
-        <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},-0.5)">&#8722;</button>
-        <input class="sv" type="number" min="0.01" step="any" value="${row.qty}" onchange="setQ('${user}','${meal}',${row.id},this.value)" onblur="setQ('${user}','${meal}',${row.id},this.value)" onkeydown="if(event.key==='Enter'){setQ('${user}','${meal}',${row.id},this.value);event.preventDefault();}">
-        <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},0.5)">+</button>
+      ${w?`<div style="padding:0 10px 4px 36px">${w}</div>`:''}
+      <div class="frow-bottom" style="${fd?'':'visibility:hidden'}">
+        <div class="live-srv">${servingLabel}</div>
+        <div class="step">
+          <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},-0.5)">&#8722;</button>
+          <input class="sv" type="number" min="0.01" step="any" value="${row.qty}" onchange="setQ('${user}','${meal}',${row.id},this.value)" onblur="setQ('${user}','${meal}',${row.id},this.value)" onkeydown="if(event.key==='Enter'){setQ('${user}','${meal}',${row.id},this.value);event.preventDefault();}">
+          <button class="sb" onclick="event.stopPropagation();stepQ('${user}','${meal}',${row.id},0.5)">+</button>
+        </div>
+        <button class="crf" onclick="event.stopPropagation();copyRow('${user}','${meal}',${row.id})" title="Copy to ${ol}" style="visibility:${fd?'visible':'hidden'}">&#8594;</button>
       </div>
-      <div class="live-srv">${servingLabel}</div>
-      <div class="nc">${fd?R(v.kcal):''}</div>
-      <div class="nc">${fd?R(v.p):''}</div>
-      <div class="nc">${fd?R(v.c):''}</div>
-      <div class="nc">${fd?R(v.f):''}</div>
-      <button class="crf" onclick="event.stopPropagation();copyRow('${user}','${meal}',${row.id})" title="Copy to ${ol}" style="visibility:${fd?'visible':'hidden'}">&#8594;</button>
-      <button class="db" onclick="event.stopPropagation();delRow('${user}','${meal}',${row.id})">&#215;</button>
+      <div class="nc" style="display:none">${fd?R(v.kcal):''}</div>
+      <div class="nc" style="display:none">${fd?R(v.p):''}</div>
+      <div class="nc" style="display:none">${fd?R(v.c):''}</div>
+      <div class="nc" style="display:none">${fd?R(v.f):''}</div>
     </div>`;;
   }).join('');
 
