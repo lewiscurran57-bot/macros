@@ -463,13 +463,17 @@ document.fonts.ready.then(function() {
   }
 
   ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
   var t1 = 'mac', t2 = 'r', t3 = 'os';
   var w1 = ctx.measureText(t1).width;
   var w2 = ctx.measureText(t2).width;
   var w3 = ctx.measureText(t3).width;
   var totalW = w1 + w2 + w3;
-  var startX = (w - totalW) / 2;
-  var baseY = 108;
+  // Use actual bounding box for true visual centering
+  var m = ctx.measureText('macros');
+  var visualW = m.actualBoundingBoxRight - m.actualBoundingBoxLeft;
+  var startX = (w - visualW) / 2 - m.actualBoundingBoxLeft;
+  var baseY = 100;
 
   ctx.fillStyle = '#ededed';
   ctx.fillText(t1, startX, baseY);
