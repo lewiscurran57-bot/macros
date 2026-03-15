@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Macros</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Macros">
+<meta name="theme-color" content="#17171b">
+<link rel="apple-touch-icon" href="">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -431,6 +436,58 @@ input[type=number]{-moz-appearance:textfield}
 .undo-strip button{padding:3px 10px;border:1px solid var(--accent);border-radius:3px;background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer}
 
 </style>
+
+<script>
+document.fonts.ready.then(function() {
+  var c = document.createElement('canvas');
+  c.width = 180; c.height = 180;
+  var ctx = c.getContext('2d');
+  var w=180, h=180, r=36;
+
+  // Background
+  ctx.fillStyle = '#1f1f25';
+  ctx.beginPath();
+  ctx.moveTo(r,0); ctx.lineTo(w-r,0); ctx.quadraticCurveTo(w,0,w,r);
+  ctx.lineTo(w,h-r); ctx.quadraticCurveTo(w,h,w-r,h);
+  ctx.lineTo(r,h); ctx.quadraticCurveTo(0,h,0,h-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.closePath(); ctx.fill();
+
+  // Use DM Sans to match the app font exactly
+  var fontSize = 38;
+  var fit = false;
+  while (!fit && fontSize > 20) {
+    ctx.font = '500 ' + fontSize + 'px "DM Sans", system-ui, -apple-system, sans-serif';
+    var totalTest = ctx.measureText('macros').width;
+    if (totalTest <= 152) { fit = true; } else { fontSize -= 1; }
+  }
+
+  ctx.textBaseline = 'alphabetic';
+  var t1 = 'mac', t2 = 'r', t3 = 'os';
+  var w1 = ctx.measureText(t1).width;
+  var w2 = ctx.measureText(t2).width;
+  var w3 = ctx.measureText(t3).width;
+  var totalW = w1 + w2 + w3;
+  var startX = (w - totalW) / 2;
+  var baseY = 108;
+
+  ctx.fillStyle = '#ededed';
+  ctx.fillText(t1, startX, baseY);
+  ctx.fillStyle = '#3a9e8c';
+  ctx.fillText(t2, startX + w1, baseY);
+  ctx.fillStyle = '#ededed';
+  ctx.fillText(t3, startX + w1 + w2, baseY);
+
+  var link = document.querySelector('link[rel="apple-touch-icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'apple-touch-icon';
+    document.head.appendChild(link);
+  }
+  link.href = c.toDataURL('image/png');
+});
+</script>
+
 </head>
 <body>
 
