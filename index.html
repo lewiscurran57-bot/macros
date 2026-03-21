@@ -1338,6 +1338,7 @@ function openFoodPicker(user, meal, rowId) {
     `<button class="fp-cat${c===_fpCat?' on':''}" onclick="setFpCat('${c}')">${c}</button>`
   ).join('');
   renderFoodPicker();
+  const _fpCard = document.querySelector('.fp-card'); if (_fpCard) _fpCard.style.maxHeight = '';
   document.getElementById('fp-overlay').style.display = 'flex';
   setTimeout(() => document.getElementById('fp-search').focus(), 100);
 }
@@ -1436,7 +1437,7 @@ function submitAddFood() {
   saveState();
   renderDB();
   closeAddFood();
-  toast(name + ' added to database');
+  toast(name + ' added to database — find it in the food picker');
 }
 
 // ── COPY ROW (individual food) ──
@@ -1695,6 +1696,19 @@ function setPack(id, val) {
   renderPanel('charlotte');
 }
 
+
+// ── KEYBOARD AWARE MODAL ──
+function initKeyboardAware() {
+  if (!window.visualViewport) return;
+  window.visualViewport.addEventListener('resize', () => {
+    const overlay = document.getElementById('fp-overlay');
+    if (!overlay || overlay.style.display === 'none') return;
+    const card = overlay.querySelector('.fp-card');
+    if (!card) return;
+    card.style.maxHeight = Math.floor(window.visualViewport.height * 0.92) + 'px';
+  });
+}
+
 // ── ACTIONS ──
 function setDay(u,d){S[u].active=d;renderPanel(u);saveState();}
 function setTarget(u,k,v){
@@ -1931,6 +1945,7 @@ function toast(msg){
 
 // ── INIT ──
 initAuth();
+initKeyboardAware();
 loadFromLocal(); renderPanel('lewis'); renderPanel('charlotte'); renderShopReps();
 loadFromCloud().then(() => { renderPanel('lewis'); renderPanel('charlotte'); renderShopReps(); renderSavedDays(); });
 renderPanel('charlotte');
