@@ -1661,12 +1661,16 @@ function packWarn(row, user) {
   return `<span class="pw">${combined?'combined ':''}${R(totalToCheck)}${isW?fd.unit:''} — try ${loQty} or ${hiQty}/day</span>`;
 }
 
-// ── UPDATED renderDB ──
 function renderDB() {
   const q = (document.getElementById('db-search') ? document.getElementById('db-search').value.toLowerCase() : '');
   const all = getAllFoods();
   const filtered = all.filter(f => !q || f.name.toLowerCase().includes(q));
-  document.getElementById('db-body').innerHTML = filtered.map(f =>
+  // Custom foods at top, then built-in sorted alphabetically
+  const sorted = [
+    ...filtered.filter(f => f.id >= 10000).sort((a,b) => a.name.localeCompare(b.name)),
+    ...filtered.filter(f => f.id < 10000).sort((a,b) => a.name.localeCompare(b.name))
+  ];
+  document.getElementById('db-body').innerHTML = sorted.map(f =>
     `<tr>
       <td>${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span>' : ''}</td>
       <td style="font-size:9px;color:var(--text3)">${f.cat||''}</td>
@@ -1929,13 +1933,7 @@ function copyList(){
   });
 }
 
-// ── DATABASE ──
-function renderDB(){
-  document.getElementById('db-body').innerHTML=FOODS.map(f=>`
-    <tr><td>${f.name}</td><td>${f.serving}</td><td>${f.unit}</td><td>${f.kcal}</td><td>${f.p}</td><td>${f.c}</td><td>${f.f}</td>
-    <td><input class="pi" type="number" min="0" placeholder="—" value="${packs[f.id]??''}" onchange="packs[${f.id}]=this.value?parseFloat(this.value):null;toast('Saved')"></td></tr>`
-  ).join('');
-}
+// ── DATABASE ── (renderDB moved above)
 
 // ── NAV ──
 function showTab(name,btn){
