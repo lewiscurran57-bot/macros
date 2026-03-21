@@ -1672,7 +1672,7 @@ function renderDB() {
   ];
   document.getElementById('db-body').innerHTML = sorted.map(f =>
     `<tr>
-      <td>${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span>' : ''}</td>
+      <td style="display:flex;align-items:center;gap:6px">${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span><button onclick="deleteCustomFood('+f.id+')" style="margin-left:auto;padding:1px 6px;border:1px solid #e55;border-radius:3px;background:transparent;color:#e55;font-size:9px;cursor:pointer">del</button>' : ''}</td>
       <td style="font-size:9px;color:var(--text3)">${f.cat||''}</td>
       <td>${f.serving}</td>
       <td>${f.kcal}</td>
@@ -1723,6 +1723,16 @@ function initKeyboardAware() {
   if (!window.visualViewport) return;
   window.visualViewport.addEventListener('resize', updateFpPosition);
   window.visualViewport.addEventListener('scroll', updateFpPosition);
+}
+
+
+function deleteCustomFood(id) {
+  if (!confirm('Remove this food from your database?')) return;
+  customFoods = customFoods.filter(f => f.id !== id);
+  delete packs[id];
+  saveState();
+  renderDB();
+  toast('Food removed');
 }
 
 // ── ACTIONS ──
