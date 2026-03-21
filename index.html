@@ -1340,7 +1340,7 @@ function openFoodPicker(user, meal, rowId) {
   renderFoodPicker();
   const _fpCard = document.querySelector('.fp-card'); if (_fpCard) _fpCard.style.maxHeight = '';
   document.getElementById('fp-overlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('fp-search').focus(), 100);
+  setTimeout(() => { updateFpPosition(); document.getElementById('fp-search').focus(); }, 50);
 }
 
 function setFpCat(cat) {
@@ -1435,9 +1435,12 @@ function submitAddFood() {
   customFoods.push(newFood);
   packs[newId] = pack;
   saveState();
+  // Clear search so new food is visible, then re-render
+  const dbSearch = document.getElementById('db-search');
+  if (dbSearch) dbSearch.value = '';
   renderDB();
   closeAddFood();
-  toast(name + ' added to database — find it in the food picker');
+  toast(name + ' added — visible in Database and food picker');
 }
 
 // ── COPY ROW (individual food) ──
@@ -1698,15 +1701,24 @@ function setPack(id, val) {
 
 
 // ── KEYBOARD AWARE MODAL ──
+function updateFpPosition() {
+  const overlay = document.getElementById('fp-overlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const card = overlay.querySelector('.fp-card');
+  if (!card) return;
+  overlay.style.top = vv.offsetTop + 'px';
+  overlay.style.left = vv.offsetLeft + 'px';
+  overlay.style.width = vv.width + 'px';
+  overlay.style.height = vv.height + 'px';
+  card.style.maxHeight = Math.floor(vv.height * 0.92) + 'px';
+}
+
 function initKeyboardAware() {
   if (!window.visualViewport) return;
-  window.visualViewport.addEventListener('resize', () => {
-    const overlay = document.getElementById('fp-overlay');
-    if (!overlay || overlay.style.display === 'none') return;
-    const card = overlay.querySelector('.fp-card');
-    if (!card) return;
-    card.style.maxHeight = Math.floor(window.visualViewport.height * 0.92) + 'px';
-  });
+  window.visualViewport.addEventListener('resize', updateFpPosition);
+  window.visualViewport.addEventListener('scroll', updateFpPosition);
 }
 
 // ── ACTIONS ──
