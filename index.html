@@ -372,7 +372,7 @@ input[type=number]{-moz-appearance:textfield}
 }
 
 /* ── FOOD PICKER MODAL ── */
-.fp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.fp-overlay{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
 .fp-card{background:var(--panel);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:560px;display:flex;flex-direction:column;max-height:85vh}
 .fp-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
 .fp-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px}
@@ -1958,10 +1958,8 @@ function toast(msg){
 // ── INIT ──
 initAuth();
 initKeyboardAware();
-loadFromLocal(); renderPanel('lewis'); renderPanel('charlotte'); renderShopReps();
-loadFromCloud().then(() => { renderPanel('lewis'); renderPanel('charlotte'); renderShopReps(); renderSavedDays(); });
-renderPanel('charlotte');
-renderShopReps();
+loadFromLocal(); renderPanel('lewis'); renderPanel('charlotte'); renderShopReps(); renderSavedDays();
+loadFromCloud().then(() => { renderPanel('lewis'); renderPanel('charlotte'); renderShopReps(); renderSavedDays(); renderDB(); });
 document.getElementById('view-planner').style.display='flex';
 </script>
 </body>
