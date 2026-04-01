@@ -786,6 +786,10 @@ const S={
   charlotte:{label:'Charlotte',targets:{kcal:1800,p:130,c:180,f:55},active:'Training Day 1',openMeals:new Set(['Breakfast']),daysPlanned:Object.fromEntries(DAYS.map(d=>[d,1])),days:Object.fromEntries(DAYS.map(d=>[d,nDay()]))}
 };
 const shopR={lewis:Object.fromEntries(DAYS.map(d=>[d,0])),charlotte:Object.fromEntries(DAYS.map(d=>[d,0]))};
+// Per-meal overrides: shopRMeals[user][day][meal] = count (defaults to shopR[user][day])
+const shopRMeals={lewis:Object.fromEntries(DAYS.map(d=>[d,Object.fromEntries(MEALS.map(m=>[m,null]))])),charlotte:Object.fromEntries(DAYS.map(d=>[d,Object.fromEntries(MEALS.map(m=>[m,null]))]))};
+// Track which day rows are expanded
+const shopExpanded={lewis:Object.fromEntries(DAYS.map(d=>[d,false])),charlotte:Object.fromEntries(DAYS.map(d=>[d,false]))};;
 
 const R=n=>Math.round(n*10)/10;
 function rowM(r){if(!r.foodId)return{kcal:0,p:0,c:0,f:0};const f=byId(r.foodId);return{kcal:f.kcal*r.qty,p:f.p*r.qty,c:f.c*r.qty,f:f.f*r.qty}}
@@ -841,7 +845,7 @@ function renderMeal(user,meal,other){
     const v=rowM(row);
     const w=packWarn(row, user);
     const isW = fd ? ['g','ml'].includes(fd.unit) : false;
-    const servingLabel = fd ? (isW ? R(row.qty * fd.serving) + fd.unit : row.qty + ' × ' + fd.serving + ' ' + fd.unit) : '';
+    const servingLabel = fd ? (isW ? R(row.qty * fd.serving) + fd.unit : R(row.qty * fd.serving) + ' ' + fd.unit) : '';
     return`<div class="frow" draggable="true" data-row-id="${row.id}" data-user="${user}" data-meal="${meal}"
       ondragstart="onRowDragStart(event)"
       ondragover="onRowDragOver(event)"
@@ -959,6 +963,7 @@ function buildSnap() {
     lewis: { targets: S.lewis.targets, active: S.lewis.active, openMeals: [...S.lewis.openMeals], days: S.lewis.days },
     charlotte: { targets: S.charlotte.targets, active: S.charlotte.active, openMeals: [...S.charlotte.openMeals], days: S.charlotte.days },
     shopR: shopR,
+    shopRMeals: shopRMeals,
     savedDays: savedDays,
     customFoods: customFoods,
     daysPlanned: { lewis: S.lewis.daysPlanned, charlotte: S.charlotte.daysPlanned },
@@ -1058,6 +1063,9 @@ function applySnap(saved) {
   if (saved.shopR) {
     DAYS.forEach(d => { ['lewis','charlotte'].forEach(u => {
       if (saved.shopR[u] && saved.shopR[u][d] !== undefined) shopR[u][d] = saved.shopR[u][d];
+      if (saved.shopRMeals && saved.shopRMeals[u] && saved.shopRMeals[u][d]) {
+        MEALS.forEach(m => { if (saved.shopRMeals[u][d][m] !== undefined) shopRMeals[u][d][m] = saved.shopRMeals[u][d][m]; });
+      }
     });});
   }
   if (saved.savedDays) savedDays = saved.savedDays;
@@ -1636,7 +1644,7 @@ function packWarn(row, user) {
   const isW = ['g','ml'].includes(fd.unit);
   const activeDay = user ? S[user].active : 'Training Day 1';
   const days = user ? (S[user].daysPlanned[activeDay] || 1) : 1;
-  const perDay = isW ? row.qty * fd.serving : row.qty;
+  const perDay = row.qty * fd.serving; // always multiply by serving size
   const myTotal = perDay * days;
   // Check if other user has same food on same day type
   const otherUser = user === 'lewis' ? 'charlotte' : 'lewis';
@@ -1851,32 +1859,79 @@ function renderShopReps(){
   ['lewis','charlotte'].forEach(user=>{
     document.getElementById(user+'-reps').innerHTML=DAYS.map(day=>{
       const n=shopR[user][day];
-      return`<div class="rrow">
-        <span class="rlbl">${day}</span>
-        <div class="rstep">
-          <button class="rb" onclick="stepRep('${user}','${day}',-1)">&#8722;</button>
-          <input class="rn${n>0?' on':''}" type="number" min="0" value="${n}" onchange="setRep('${user}','${day}',this.value)">
-          <button class="rb" onclick="stepRep('${user}','${day}',1)">+</button>
+      const expanded=shopExpanded[user][day];
+      const hasOverrides=MEALS.some(m=>shopRMeals[user][day][m]!==null&&shopRMeals[user][day][m]!==n);
+      const mealRows=expanded?MEALS.map(m=>{
+        const mv=getMealRep(user,day,m);
+        const isOverridden=shopRMeals[user][day][m]!==null&&shopRMeals[user][day][m]!==n;
+        return`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 4px 12px;border-top:1px solid rgba(255,255,255,0.04)">
+          <span style="font-size:11px;color:var(--text3)">${m}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${isOverridden?`<span style="font-size:9px;color:var(--warn);font-family:'DM Mono',monospace">${mv}d</span>`:''}
+            <div class="rstep" style="transform:scale(0.85);transform-origin:right center">
+              <button class="rb" onclick="stepMealRep('${user}','${day}','${m}',-1)">&#8722;</button>
+              <input class="rn${mv>0?' on':''}" type="number" min="0" value="${mv}" style="width:24px" onchange="shopRMeals['${user}']['${day}']['${m}']=Math.max(0,parseInt(this.value)||0);renderShopReps();saveState();">
+              <button class="rb" onclick="stepMealRep('${user}','${day}','${m}',1)">+</button>
+            </div>
+          </div>
+        </div>`;
+      }).join(''):'';
+      return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden">
+        <div class="rrow" style="padding:6px 10px">
+          <span class="rlbl">${day}${hasOverrides?` <span style="font-size:9px;color:var(--warn)">custom</span>`:''}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="rstep">
+              <button class="rb" onclick="stepRep('${user}','${day}',-1)">&#8722;</button>
+              <input class="rn${n>0?' on':''}" type="number" min="0" value="${n}" onchange="setRep('${user}','${day}',this.value)">
+              <button class="rb" onclick="stepRep('${user}','${day}',1)">+</button>
+            </div>
+            <button onclick="toggleShopExpand('${user}','${day}')" style="padding:2px 7px;border:1px solid var(--border);border-radius:3px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;white-space:nowrap">${expanded?'▲ Less':'▼ Meals'}</button>
+          </div>
         </div>
+        ${mealRows}
       </div>`;
     }).join('');
   });
 }
-function stepRep(u,d,delta){shopR[u][d]=Math.max(0,shopR[u][d]+delta);renderShopReps();saveState();}
-function setRep(u,d,val){shopR[u][d]=Math.max(0,parseInt(val)||0);saveState();}
+function stepRep(u,d,delta){
+  const newVal=Math.max(0,shopR[u][d]+delta);
+  shopR[u][d]=newVal;
+  // Reset any meal overrides that were at the old day count to follow new count
+  MEALS.forEach(m=>{ if(shopRMeals[u][d][m]===null||shopRMeals[u][d][m]===shopR[u][d]-delta) shopRMeals[u][d][m]=null; });
+  renderShopReps();saveState();
+}
+function setRep(u,d,val){
+  shopR[u][d]=Math.max(0,parseInt(val)||0);
+  renderShopReps();saveState();
+}
+function stepMealRep(u,d,m,delta){
+  const cur=shopRMeals[u][d][m]!==null?shopRMeals[u][d][m]:shopR[u][d];
+  shopRMeals[u][d][m]=Math.max(0,cur+delta);
+  renderShopReps();saveState();
+}
+function toggleShopExpand(u,d){
+  shopExpanded[u][d]=!shopExpanded[u][d];
+  renderShopReps();
+}
+function getMealRep(u,d,m){
+  return shopRMeals[u][d][m]!==null?shopRMeals[u][d][m]:shopR[u][d];
+}
 
 function generateList(){
   // Build totals: combine lewis + charlotte quantities for same food, using shopR reps
   const totals={};
   ['lewis','charlotte'].forEach(user=>{
     DAYS.forEach(day=>{
-      const reps=shopR[user][day];if(!reps)return;
+      if(!shopR[user][day])return;
       MEALS.forEach(meal=>{
+        const reps=getMealRep(user,day,meal);if(!reps)return;
         S[user].days[day][meal].forEach(row=>{
           if(!row.foodId)return;
           const fd=byId(row.foodId);if(!fd)return;
           const isW=['g','ml'].includes(fd.unit);
-          const perDay=isW?row.qty*fd.serving:row.qty;
+          // For weight: total grams = qty × serving × days
+          // For countable: total units = qty × serving × days (e.g. 1.5 servings × 2 sausages = 3 sausages)
+          const perDay=row.qty*fd.serving;
           if(!totals[fd.id])totals[fd.id]={fd,totalAmt:0,users:{}};
           totals[fd.id].totalAmt+=perDay*reps;
           if(!totals[fd.id].users[user])totals[fd.id].users[user]={perDay:0,reps};
@@ -1890,7 +1945,7 @@ function generateList(){
   if(!items.length){document.getElementById('list-body').innerHTML='<div class="empty">No foods found. Make sure you have planned food and set day counts above.</div>';return;}
   document.getElementById('list-body').innerHTML=items.map(({fd,totalAmt,users})=>{
     const isW=['g','ml'].includes(fd.unit);
-    const amtStr=isW?Math.round(totalAmt)+fd.unit:Math.round(totalAmt)+' '+fd.unit;
+    const amtStr=isW?Math.round(totalAmt)+fd.unit:Math.round(totalAmt*10)/10+' '+fd.unit;
     let packWarnStr='';
     if(fd.pack){
       const packs=totalAmt/fd.pack;
@@ -1907,8 +1962,8 @@ function generateList(){
     }
     // User breakdown
     const breakdown=Object.entries(users).map(([u,{perDay,reps}])=>{
-      const amt=isW?Math.round(perDay*reps)+fd.unit:Math.round(perDay*reps)+' '+fd.unit;
-      return `${S[u].label}: ${amt} (${perDay}${isW?fd.unit:''}×${reps})`;
+      const amt=isW?Math.round(perDay*reps)+fd.unit:Math.round(perDay*reps*10)/10+' '+fd.unit;
+      return `${S[u].label}: ${amt} (${Math.round(perDay*10)/10} ${fd.unit}/day × ${reps} days)`;
     }).join(' · ');
     return`<div style="padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.04)">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
