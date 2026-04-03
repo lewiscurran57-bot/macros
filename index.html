@@ -1479,6 +1479,7 @@ function renderFoodPicker() {
 function pickFood(foodId) {
   if (!_fpContext) return;
   const { user, meal, rowId } = _fpContext;
+  saveSnapshot(user);
   const r = S[user].days[S[user].active][meal].find(r => r.id === rowId);
   if (r) { r.foodId = foodId; r.qty = 1; }
   renderPanel(user);
@@ -1613,21 +1614,18 @@ function showUndo(msg, user) {
 
 function doUndo() {
   const btn = document.getElementById('undo-btn');
-  const user = btn ? btn.dataset.undoUser : null;
+  if (!btn || btn.disabled) { toast('Nothing to undo'); return; }
+  // Try both users - whichever has a pending undo
+  const user = btn.dataset.undoUser || (['lewis','charlotte'].find(u => undoStack[u]) || null);
   if (!user || !undoStack[user]) { toast('Nothing to undo'); return; }
   const { day, snapshot } = undoStack[user];
-  if (day !== S[user].active) { toast('Switch to ' + day + ' to undo'); return; }
+  // Switch to the right day if needed
+  if (day !== S[user].active) S[user].active = day;
   MEALS.forEach(m => {
     if (snapshot[m]) S[user].days[day][m] = snapshot[m].map(r => ({...r}));
   });
   renderPanel(user); saveState();
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-    btn.style.cursor = 'not-allowed';
-    btn.style.color = 'var(--text4)';
-    btn.title = 'Nothing to undo';
-  }
+  setUndoBtn(false, null);
   undoStack[user] = null;
   toast('Undone');
 }
@@ -1954,6 +1952,21 @@ function closePreview() {
 }
 
 
+function setUndoBtn(active, user) {
+  const btn = document.getElementById('undo-btn');
+  if (!btn) return;
+  if (active) {
+    btn.removeAttribute('disabled');
+    btn.style.cssText = 'padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1';
+    btn.dataset.undoUser = user;
+    btn.title = 'Undo last change';
+  } else {
+    btn.setAttribute('disabled', '');
+    btn.style.cssText = 'padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:\'DM Sans\',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4';
+    btn.title = 'Nothing to undo';
+  }
+}
+
 function saveSnapshot(user) {
   const day = S[user].active;
   const snap = {};
@@ -1961,23 +1974,9 @@ function saveSnapshot(user) {
     snap[m] = S[user].days[day][m].map(r => ({...r}));
   });
   undoStack[user] = { user, day, snapshot: snap };
-  const btn = document.getElementById('undo-btn');
-  if (btn) {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.style.color = 'var(--text2)';
-    btn.dataset.undoUser = user;
-    btn.title = 'Undo last change';
-    clearTimeout(btn._timer);
-    btn._timer = setTimeout(() => {
-      btn.disabled = true;
-      btn.style.opacity = '0.4';
-      btn.style.cursor = 'not-allowed';
-      btn.style.color = 'var(--text4)';
-      btn.title = 'Nothing to undo';
-    }, 15000);
-  }
+  setUndoBtn(true, user);
+  if (window._undoTimer) clearTimeout(window._undoTimer);
+  window._undoTimer = setTimeout(() => setUndoBtn(false, null), 15000);
 }
 
 // ── ACTIONS ──
