@@ -559,7 +559,7 @@ document.fonts.ready.then(function() {
     </div>
     <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
       <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices">Save</button>
-      <button id="undo-btn" onclick="doUndo()" style="display:none;padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Undo last copy">&#8617; Undo</button>
+      <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to undo" disabled>&#8617; Undo</button>
       <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as JSON backup">Export</button>
       <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Import JSON backup">Import</button>
     </div>
@@ -701,7 +701,7 @@ document.fonts.ready.then(function() {
           </div>
         </div>
         <div class="info-kcal" id="info-kcal">0</div>
-        <div class="info-kcal-lbl">kcal</div>
+        <div class="info-kcal-lbl" id="info-kcal-delta">at current quantity</div>
         <div class="info-bar-row">
           <div class="info-bar-lbl"><span class="info-bar-name">Protein</span><span class="info-bar-val" id="info-p-val" style="color:#3a9e8c">0g</span></div>
           <div class="info-bar-track"><div class="info-bar-fill" id="info-p-bar" style="background:#3a9e8c;width:0%"></div></div>
@@ -1602,11 +1602,20 @@ function showUndo(msg, user) {
   // Show inline undo button in header
   const btn = document.getElementById('undo-btn');
   if (btn) {
-    btn.style.display = 'block';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.color = 'var(--text2)';
     btn.dataset.undoUser = user;
     btn.title = 'Undo: ' + msg;
     clearTimeout(btn._timer);
-    btn._timer = setTimeout(() => { btn.style.display = 'none'; }, 8000);
+    btn._timer = setTimeout(() => {
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+      btn.style.color = 'var(--text4)';
+      btn.title = 'Nothing to undo';
+    }, 8000);
   }
   toast(msg + ' — tap Undo to reverse');
 }
@@ -1618,7 +1627,13 @@ function doUndo() {
   const { meal, snapshot } = undoStack[user];
   S[user].days[S[user].active][meal] = snapshot.map(r => ({...r, id: r.id}));
   renderPanel(user); saveState();
-  if (btn) btn.style.display = 'none';
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+    btn.style.color = 'var(--text4)';
+    btn.title = 'Nothing to undo';
+  }
   undoStack[user] = null;
   toast('Undone');
 }
@@ -1846,6 +1861,8 @@ function deleteCustomFood(id) {
 let _infoFoodId = null;
 let _infoQty = 1;
 
+let _infoBaseQty = 1; // original qty from planner
+
 function openFoodInfo(user, meal, rowId) {
   const row = S[user].days[S[user].active][meal].find(r => r.id === rowId);
   if (!row || !row.foodId) return;
@@ -1853,6 +1870,7 @@ function openFoodInfo(user, meal, rowId) {
   if (!fd) return;
   _infoFoodId = row.foodId;
   _infoQty = row.qty;
+  _infoBaseQty = row.qty; // remember original
   document.getElementById('info-title').textContent = fd.name;
   document.getElementById('info-qty').value = _infoQty;
   renderInfoPopup();
@@ -1866,10 +1884,26 @@ function renderInfoPopup() {
   const p = R(fd.p * _infoQty);
   const c = R(fd.c * _infoQty);
   const f = R(fd.f * _infoQty);
+  // Deltas vs original quantity
+  const dKcal = R(fd.kcal * (_infoQty - _infoBaseQty));
+  const dP = R(fd.p * (_infoQty - _infoBaseQty));
+  const dC = R(fd.c * (_infoQty - _infoBaseQty));
+  const dF = R(fd.f * (_infoQty - _infoBaseQty));
+  const changed = _infoQty !== _infoBaseQty;
+  const fmt = (v) => v > 0 ? '+' + v : '' + v;
+  const col = (v) => v > 0 ? 'var(--accent)' : v < 0 ? 'var(--red)' : 'var(--text3)';
+
   document.getElementById('info-kcal').textContent = kcal;
-  document.getElementById('info-p-val').textContent = p + 'g';
-  document.getElementById('info-c-val').textContent = c + 'g';
-  document.getElementById('info-f-val').textContent = f + 'g';
+  document.getElementById('info-kcal-delta').textContent = changed ? fmt(dKcal) + ' kcal vs current' : 'at current quantity';
+  document.getElementById('info-kcal-delta').style.color = changed ? col(dKcal) : 'var(--text3)';
+
+  document.getElementById('info-p-val').textContent = p + 'g' + (changed ? ' (' + fmt(dP) + 'g)' : '');
+  document.getElementById('info-p-val').style.color = changed ? col(dP) : '#3a9e8c';
+  document.getElementById('info-c-val').textContent = c + 'g' + (changed ? ' (' + fmt(dC) + 'g)' : '');
+  document.getElementById('info-c-val').style.color = changed ? col(dC) : '#7c6af7';
+  document.getElementById('info-f-val').textContent = f + 'g' + (changed ? ' (' + fmt(dF) + 'g)' : '');
+  document.getElementById('info-f-val').style.color = changed ? col(dF) : '#e06898';
+
   // Bar widths — proportional to kcal contribution
   const pKcal = fd.p * _infoQty * 4;
   const cKcal = fd.c * _infoQty * 4;
