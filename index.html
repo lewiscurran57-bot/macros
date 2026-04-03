@@ -1548,12 +1548,7 @@ function copyRow(fromUser, meal, rowId) {
   const row = fromRows.find(r => r.id === rowId);
   if (!row || !row.foodId) return;
 
-  // Save undo snapshot per user
-  const toRows = S[toUser].days[S[toUser].active][meal];
-  undoStack[toUser] = {
-    type: 'copyRow', user: toUser, meal,
-    snapshot: toRows.map(r => ({...r}))
-  };
+  saveSnapshot(toUser);
 
   // Check if food already exists in dest meal
   const existing = toRows.find(r => r.foodId === row.foodId);
@@ -1567,7 +1562,7 @@ function copyRow(fromUser, meal, rowId) {
   S[toUser].openMeals.add(meal);
   renderPanel(toUser);
   saveState();
-  showUndo('Food copied to ' + S[toUser].label, toUser);
+  toast('Copied to ' + S[toUser].label + ' — tap Undo to reverse');
 }
 
 // Update copyMeal to handle duplicates and support undo
@@ -1575,11 +1570,7 @@ function copyMeal(from, meal, to) {
   const fromRows = S[from].days[S[from].active][meal].filter(r => r.foodId);
   if (!fromRows.length) { toast('No foods to copy'); return; }
 
-  // Save undo snapshot per user
-  undoStack[to] = {
-    type: 'copyMeal', user: to, meal,
-    snapshot: S[to].days[S[to].active][meal].map(r => ({...r}))
-  };
+  saveSnapshot(to);
 
   fromRows.forEach(row => {
     const dest = S[to].days[S[to].active][meal];
@@ -1594,7 +1585,7 @@ function copyMeal(from, meal, to) {
   });
   S[to].openMeals.add(meal);
   renderPanel(to); saveState();
-  showUndo(meal + ' copied to ' + S[to].label, to);
+  toast(meal + ' copied to ' + S[to].label + ' — tap Undo to reverse');
 }
 
 // ── UNDO ──
@@ -1623,9 +1614,12 @@ function showUndo(msg, user) {
 function doUndo() {
   const btn = document.getElementById('undo-btn');
   const user = btn ? btn.dataset.undoUser : null;
-  if (!user || !undoStack[user]) return;
-  const { meal, snapshot } = undoStack[user];
-  S[user].days[S[user].active][meal] = snapshot.map(r => ({...r, id: r.id}));
+  if (!user || !undoStack[user]) { toast('Nothing to undo'); return; }
+  const { day, snapshot } = undoStack[user];
+  if (day !== S[user].active) { toast('Switch to ' + day + ' to undo'); return; }
+  MEALS.forEach(m => {
+    if (snapshot[m]) S[user].days[day][m] = snapshot[m].map(r => ({...r}));
+  });
   renderPanel(user); saveState();
   if (btn) {
     btn.disabled = true;
@@ -1959,6 +1953,33 @@ function closePreview() {
   document.getElementById('preview-overlay').style.display = 'none';
 }
 
+
+function saveSnapshot(user) {
+  const day = S[user].active;
+  const snap = {};
+  MEALS.forEach(m => {
+    snap[m] = S[user].days[day][m].map(r => ({...r}));
+  });
+  undoStack[user] = { user, day, snapshot: snap };
+  const btn = document.getElementById('undo-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.color = 'var(--text2)';
+    btn.dataset.undoUser = user;
+    btn.title = 'Undo last change';
+    clearTimeout(btn._timer);
+    btn._timer = setTimeout(() => {
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+      btn.style.color = 'var(--text4)';
+      btn.title = 'Nothing to undo';
+    }, 15000);
+  }
+}
+
 // ── ACTIONS ──
 function setDay(u,d){S[u].active=d;renderPanel(u);saveState();}
 function setTarget(u,k,v){
@@ -1976,6 +1997,7 @@ function toggleMeal(user,meal){
 }
 
 function setFood(u,m,id,val){
+  saveSnapshot(u);
   const r=S[u].days[S[u].active][m].find(r=>r.id===id);
   if(r){r.foodId=val?parseInt(val):null;r.qty=1;}
   renderPanel(u); saveState();
@@ -2017,6 +2039,7 @@ function addRow(u,m){
   });
 }
 function delRow(u,m,id){
+  saveSnapshot(u);
   const rows=S[u].days[S[u].active][m],i=rows.findIndex(r=>r.id===id);
   if(i!==-1)rows.splice(i,1);
   if(!rows.length)rows.push(nRow());
