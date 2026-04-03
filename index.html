@@ -1975,6 +1975,7 @@ function saveSnapshot(user) {
   });
   undoStack[user] = { user, day, snapshot: snap };
   setUndoBtn(true, user);
+  toast(user + " snapshot saved");
   if (window._undoTimer) clearTimeout(window._undoTimer);
   window._undoTimer = setTimeout(() => setUndoBtn(false, null), 15000);
 }
