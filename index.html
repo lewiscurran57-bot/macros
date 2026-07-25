@@ -819,6 +819,19 @@ document.fonts.ready.then(function() {
           </div>
         </div>
         <div id="afd-err" style="font-size:11px;color:var(--warn);min-height:14px"></div>
+      <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin:8px 0 6px;padding-top:8px;border-top:1px solid var(--border)">Micronutrients per serving (optional)</div>
+      <div class="afd-row">
+        <div class="afd-field"><label class="afd-label">Fibre (g)</label><input class="afd-input" id="afd-fibre" type="number" min="0" step="0.1" placeholder="0"></div>
+        <div class="afd-field"><label class="afd-label">Sugar (g)</label><input class="afd-input" id="afd-sugar" type="number" min="0" step="0.1" placeholder="0"></div>
+      </div>
+      <div class="afd-row">
+        <div class="afd-field"><label class="afd-label">Sodium (mg)</label><input class="afd-input" id="afd-sodium" type="number" min="0" step="1" placeholder="0"></div>
+        <div class="afd-field"><label class="afd-label">Calcium (mg)</label><input class="afd-input" id="afd-calcium" type="number" min="0" step="1" placeholder="0"></div>
+      </div>
+      <div class="afd-row">
+        <div class="afd-field"><label class="afd-label">Iron (mg)</label><input class="afd-input" id="afd-iron" type="number" min="0" step="0.1" placeholder="0"></div>
+        <div class="afd-field"></div>
+      </div>
       </div>
       <div class="afd-foot">
         <button class="afd-btn sec" onclick="closeAddFood()">Cancel</button>
@@ -941,9 +954,9 @@ document.getElementById('col-'+user).innerHTML=`
       <div style="padding:4px 14px 0">
         <button onclick="toggleMicros('${user}')" style="width:100%;padding:5px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:10px;cursor:pointer;text-align:left;display:flex;justify-content:space-between">
           <span>Micronutrients</span>
-          <span>${microOpen['${user}'] ? '▲ Hide' : '▼ Show'}</span>
+          <span>${microOpen[user] ? '▲ Hide' : '▼ Show'}</span>
         </button>
-        ${microOpen['${user}'] ? renderMicroPanel('${user}') : ''}
+        ${microOpen[user] ? renderMicroPanel(user) : ''}
       </div>
       <div class="dplan-row" style="flex-wrap:wrap;gap:6px">
         <span class="dplan-lbl" style="flex:none">Days planned:</span>
