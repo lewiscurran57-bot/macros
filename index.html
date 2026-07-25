@@ -575,10 +575,10 @@ document.fonts.ready.then(function() {
       <button class="nb" onclick="showTab('saved',this)">Saved</button>
       <button class="nb" onclick="showTab('database',this)">Database</button>
     </div>
-    <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-      <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices">Save</button>
-      <button id="redo-btn" onclick="doRedo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to redo" disabled>&#8618; Redo</button>
-      <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to undo" disabled>&#8617; Undo</button>
+    <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;min-width:0">
+      <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices" style="min-width:56px;text-align:center">Save</button>
+      <button id="redo-btn" onclick="doRedo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to redo" disabled>↷</button>
+      <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to undo" disabled>↶</button>
       <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as JSON backup">Export</button>
       <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Import JSON backup">Import</button>
     </div>
@@ -659,11 +659,7 @@ document.fonts.ready.then(function() {
   <div id="view-saved" class="view sv2" style="display:none">
     <div class="si">
       <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div><h2>Saved</h2><p>Save day plans and individual meals.</p></div>
-        <div style="display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px">
-          <button id="saved-view-days" class="nb on" onclick="switchSavedView('days',this)" style="font-size:11px;padding:4px 10px">Full Days</button>
-          <button id="saved-view-meals" class="nb" onclick="switchSavedView('meals',this)" style="font-size:11px;padding:4px 10px">By Meal</button>
-        </div>
+        <div><h2>Saved</h2><p>Save day plans and browse by meal.</p></div>
       </div>
       <div id="saved-view-content"></div>
       <div id="saved-days-list" style="display:none"></div>
@@ -681,7 +677,7 @@ document.fonts.ready.then(function() {
         <input id="db-search" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;box-sizing:border-box" placeholder="Search database..." oninput="renderDB()" autocomplete="off">
       </div>
       <table class="dtbl">
-        <thead><tr><th>Food</th><th>Cat</th><th>Serving</th><th>Kcal</th><th>P</th><th>C</th><th>F</th><th>Pack</th></tr></thead>
+        <thead><tr><th style="min-width:120px">Food</th><th style="white-space:nowrap">Cat</th><th>Serving</th><th>Kcal</th><th>P</th><th>C</th><th>F</th><th style="min-width:220px">Pack sizes</th></tr></thead>
         <tbody id="db-body"></tbody>
       </table>
     </div>
@@ -1727,22 +1723,15 @@ function saveCurrentDay() {
 
 let _savedViewMode = 'days';
 
-function switchSavedView(mode, btn) {
+function switchSavedView(mode) {
   _savedViewMode = mode;
-  document.querySelectorAll('#saved-view-days, #saved-view-meals').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
   renderSavedDays();
 }
 
 function renderSavedDays() {
   const el = document.getElementById('saved-view-content');
   if (!el) return;
-
-  if (_savedViewMode === 'days') {
-    renderSavedDaysView(el);
-  } else {
-    renderSavedMealsView(el);
-  }
+  renderSavedDaysView(el);
 }
 
 function renderSavedDaysView(el) {
@@ -1791,11 +1780,21 @@ function renderSavedDaysView(el) {
       </div>`;
     }).join('')}
   </div>`;
+
+  // Append meal library section below
+  const mealLibDiv = document.createElement('div');
+  mealLibDiv.style.cssText = 'margin-top:16px';
+  const expanded = _savedViewMode === 'meals';
+  mealLibDiv.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;cursor:pointer" onclick="switchSavedView(_savedViewMode==='meals'?'days':'meals')">
+    <div style="font-size:12px;font-weight:600;color:var(--text2)">Meal Library</div>
+    <div style="font-size:11px;color:var(--text3)">${expanded ? '▲ Hide' : '▼ Browse by meal'}</div>
+  </div>
+  ${expanded ? renderSavedMealsHTML() : ''}`;
+  el.appendChild(mealLibDiv);
 }
 
-function renderSavedMealsView(el) {
-  // Group foods by meal type across all saved days
-  el.innerHTML = `<div style="padding-top:8px">
+function renderSavedMealsHTML() {
+  return `<div style="padding-top:4px">
     ${MEALS.map(meal => {
       const mealEntries = savedDays.filter(sd => sd.meals[meal] && sd.meals[meal].some(r => r.foodId));
       if (!mealEntries.length) return '';
@@ -1819,7 +1818,11 @@ function renderSavedMealsView(el) {
       </div>`;
     }).join('')}
     ${savedDays.length === 0 ? '<div class="empty">No saved days yet. Save a day from the Planner.</div>' : ''}
-  </div>`;
+  </div>`
+}
+
+function renderSavedMealsView(el) {
+  el.innerHTML = renderSavedMealsHTML();
 }
 
 // Copy a single meal from a saved day to a destination
@@ -1972,7 +1975,7 @@ function renderDB() {
   ];
   document.getElementById('db-body').innerHTML = sorted.map(f =>
     `<tr>
-      <td style="display:flex;align-items:center;gap:6px">${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span><button onclick="deleteCustomFood('+f.id+')" style="margin-left:auto;padding:1px 6px;border:1px solid #e55;border-radius:3px;background:transparent;color:#e55;font-size:9px;cursor:pointer">del</button>' : ''}</td>
+      <td style="display:flex;align-items:center;gap:4px;min-width:120px;max-width:200px">${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span><button onclick="deleteCustomFood('+f.id+')" style="margin-left:auto;padding:1px 6px;border:1px solid #e55;border-radius:3px;background:transparent;color:#e55;font-size:9px;cursor:pointer">del</button>' : ''}</td>
       <td style="font-size:9px;color:var(--text3)">${f.cat||''}</td>
       <td>${f.serving}</td>
       <td>${f.kcal}</td>
