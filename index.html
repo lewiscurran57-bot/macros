@@ -372,6 +372,24 @@ input[type=number]{-moz-appearance:textfield}
 }
 
 
+
+/* ── COPY PICKER ── */
+.cpick-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:3000;display:flex;align-items:flex-end;justify-content:center}
+.cpick-card{background:var(--panel);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column}
+.cpick-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cpick-title{font-size:14px;font-weight:600}
+.cpick-body{overflow-y:auto;flex:1;padding:8px 0 16px}
+.cpick-section{padding:8px 16px 4px;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-family:'DM Mono',monospace}
+.cpick-item{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;transition:background .1s;gap:8px}
+.cpick-item:hover{background:var(--card)}
+.cpick-item:active{background:var(--card2)}
+.cpick-iname{font-size:13px;color:var(--text)}
+.cpick-imeta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-align:right}
+.cpick-back{padding:6px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text3);font-size:12px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.cpick-back:hover{color:var(--text)}
+.cpick-footer{padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.cpick-footer button{width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+
 /* ── FOOD INFO POPUP ── */
 .info-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;display:flex;align-items:flex-end;justify-content:center}
 .info-card{background:var(--panel);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:480px;padding:0 0 20px}
@@ -684,6 +702,19 @@ document.fonts.ready.then(function() {
 </div>
 
 
+
+  <!-- COPY PICKER -->
+  <div class="cpick-overlay" id="cpick-overlay" style="display:none" onclick="if(event.target===this)closeCopyPicker()">
+    <div class="cpick-card">
+      <div class="cpick-head">
+        <span class="cpick-title" id="cpick-title">Copy</span>
+        <button class="info-close" onclick="closeCopyPicker()">&#215;</button>
+      </div>
+      <div class="cpick-body" id="cpick-body"></div>
+      <div class="cpick-footer"><button onclick="closeCopyPicker()">Cancel</button></div>
+    </div>
+  </div>
+
   <!-- FOOD INFO POPUP -->
   <div class="info-overlay" id="info-overlay" style="display:none" onclick="if(event.target===this)closeFoodInfo()">
     <div class="info-card">
@@ -975,7 +1006,7 @@ function renderMeal(user,meal,other){
         <span class="mk">${R(tot.kcal)} kcal</span>
         <div class="mmp"><span>P ${R(tot.p)}</span><span>C ${R(tot.c)}</span><span>F ${R(tot.f)}</span></div>
       </div>
-      <button class="mcb" onclick="event.stopPropagation();copyMeal('${user}','${meal}','${other}')">Copy to ${ol}</button>
+      <button class="mcb" onclick="event.stopPropagation();openCopyPicker('${user}','${meal}')">Copy</button>
       <span class="mchev">&#9660;</span>
     </div>
     <div class="mbody">
@@ -1163,6 +1194,17 @@ function applySnap(saved) {
     customFoods = saved.customFoods;
     customFoods.forEach(f => { packs[f.id] = f.pack; });
   }
+  // Fix ID collision: set rid to max existing row ID so new rows never clash
+  let maxId = rid;
+  ['lewis','charlotte'].forEach(u => {
+    DAYS.forEach(d => { MEALS.forEach(m => {
+      S[u].days[d][m].forEach(r => { if (r.id > maxId) maxId = r.id; });
+    });});
+  });
+  if (savedDays) savedDays.forEach(sd => {
+    MEALS.forEach(m => { if(sd.meals[m]) sd.meals[m].forEach(r => { if(r.id > maxId) maxId = r.id; }); });
+  });
+  rid = maxId;
   if (saved.packOverrides) {
     Object.entries(saved.packOverrides).forEach(([id, pack]) => {
       const fid = parseInt(id);
@@ -1332,8 +1374,7 @@ function renderDayView() {
       ${rows.map(row => {
         const fd = byId(row.foodId);
         const v = rowM(row);
-        const isWeight = ['g','ml'].includes(fd.unit);
-        const totalAmt = isWeight ? R(row.qty * fd.serving) + fd.unit : R(row.qty) + ' x ' + fd.serving + ' ' + fd.unit;
+        const totalAmt = cleanAmt(row, fd);
         return `<div class="dv-food-row">
           <span class="dv-food-name">${fd.name}</span>
           <span class="dv-food-amt">${totalAmt}</span>
@@ -1360,6 +1401,16 @@ function renderDayView() {
   document.getElementById('dv-content').innerHTML = html;
 }
 
+function cleanAmt(row, fd) {
+  // Always show the actual total amount, never fractions or multiplications
+  const isWeight = ['g','ml'].includes(fd.unit);
+  const total = row.qty * fd.serving;
+  if (isWeight) return Math.round(total * 10) / 10 + fd.unit;
+  // For countable units: show whole number if possible
+  const rounded = Math.round(total * 10) / 10;
+  return rounded + ' ' + fd.unit;
+}
+
 function buildDayViewText() {
   const u = S[_dvUser];
   const tot = dayM(_dvUser);
@@ -1375,9 +1426,7 @@ function buildDayViewText() {
     rows.forEach(row => {
       const fd = byId(row.foodId);
       const v = rowM(row);
-      const isWeight = ['g','ml'].includes(fd.unit);
-      const amt = isWeight ? R(row.qty * fd.serving) + fd.unit : R(row.qty) + ' x ' + fd.serving + ' ' + fd.unit;
-      txt += '  ' + fd.name + ' (' + amt + ')\n';
+      txt += '  ' + fd.name + ' — ' + cleanAmt(row, fd) + '\n';
       txt += '    ' + R(v.kcal) + 'kcal  P:' + R(v.p) + 'g  C:' + R(v.c) + 'g  F:' + R(v.f) + 'g\n';
     });
     txt += '\n';
@@ -1975,9 +2024,137 @@ function saveSnapshot(user) {
   });
   undoStack[user] = { user, day, snapshot: snap };
   setUndoBtn(true, user);
-  toast(user + " snapshot saved");
   if (window._undoTimer) clearTimeout(window._undoTimer);
   window._undoTimer = setTimeout(() => setUndoBtn(false, null), 15000);
+}
+
+
+// ── COPY PICKER ──
+let _cpick = {}; // context state
+
+function openCopyPicker(fromUser, fromMeal) {
+  _cpick = { fromUser, fromMeal, mode: 'main' };
+  document.getElementById('cpick-title').textContent = 'Copy ' + fromMeal;
+  renderCopyPicker();
+  document.getElementById('cpick-overlay').style.display = 'flex';
+}
+
+function closeCopyPicker() {
+  document.getElementById('cpick-overlay').style.display = 'none';
+  _cpick = {};
+}
+
+function renderCopyPicker() {
+  const body = document.getElementById('cpick-body');
+  const { mode, fromUser, fromMeal } = _cpick;
+  const rows = S[fromUser].days[S[fromUser].active][fromMeal].filter(r => r.foodId);
+
+  if (mode === 'main') {
+    // Main menu: copy full meal or copy single food
+    document.getElementById('cpick-title').textContent = 'Copy ' + fromMeal;
+    body.innerHTML = `
+      <div class="cpick-section">What to copy</div>
+      <div class="cpick-item" onclick="_cpick.mode='fullMeal';renderCopyPicker()">
+        <span class="cpick-iname">Copy full ${fromMeal}</span>
+        <span class="cpick-imeta">${rows.length} food${rows.length!==1?'s':''} →</span>
+      </div>
+      ${rows.length ? `<div class="cpick-item" onclick="_cpick.mode='pickFood';renderCopyPicker()">
+        <span class="cpick-iname">Copy single food</span>
+        <span class="cpick-imeta">choose which →</span>
+      </div>` : ''}
+    `;
+
+  } else if (mode === 'pickFood') {
+    // Show foods to pick from
+    document.getElementById('cpick-title').textContent = 'Which food?';
+    body.innerHTML = `
+      <div class="cpick-back" onclick="_cpick.mode='main';renderCopyPicker()">&#8592; Back</div>
+      <div class="cpick-section">Select food to copy</div>
+      ${rows.map(row => {
+        const fd = byId(row.foodId);
+        const v = rowM(row);
+        return `<div class="cpick-item" onclick="_cpick.rowId=${row.id};_cpick.mode='destFood';renderCopyPicker()">
+          <span class="cpick-iname">${fd.name}</span>
+          <span class="cpick-imeta">${R(v.kcal)}kcal · ${cleanAmt(row,fd)}</span>
+        </div>`;
+      }).join('')}
+    `;
+
+  } else if (mode === 'fullMeal' || mode === 'destFood') {
+    // Destination picker: person + day + meal
+    const isFood = mode === 'destFood';
+    const selRow = isFood ? rows.find(r => r.id === _cpick.rowId) : null;
+    const selFd = selRow ? byId(selRow.foodId) : null;
+    document.getElementById('cpick-title').textContent = isFood ? ('Copy ' + (selFd ? selFd.name : '')) : ('Copy ' + fromMeal);
+    
+    let items = '';
+    ['lewis','charlotte'].forEach(toUser => {
+      DAYS.forEach(toDay => {
+        MEALS.forEach(toMeal => {
+          // Skip exact same source
+          if (toUser === fromUser && toDay === S[fromUser].active && toMeal === fromMeal && !isFood) return;
+          const destRows = S[toUser].days[toDay][toMeal].filter(r => r.foodId);
+          const label = S[toUser].label + ' · ' + toDay + ' · ' + toMeal;
+          items += `<div class="cpick-item" onclick="executeCopy('${toUser}','${toDay}','${toMeal}',${isFood})">
+            <span class="cpick-iname">${label}</span>
+            <span class="cpick-imeta">${destRows.length > 0 ? destRows.length + ' foods' : 'empty'}</span>
+          </div>`;
+        });
+      });
+    });
+
+    const backMode = isFood ? 'pickFood' : 'main';
+    body.innerHTML = `
+      <div class="cpick-back" onclick="_cpick.mode='${backMode}';renderCopyPicker()">&#8592; Back</div>
+      <div class="cpick-section">Copy to where?</div>
+      ${items}
+    `;
+  }
+}
+
+function executeCopy(toUser, toDay, toMeal, isSingleFood) {
+  const { fromUser, fromMeal, rowId } = _cpick;
+  const fromDay = S[fromUser].active;
+  saveSnapshot(toUser);
+  if (fromUser !== toUser || fromDay !== toDay) saveSnapshot(fromUser);
+
+  if (isSingleFood) {
+    // Copy single food row
+    const row = S[fromUser].days[fromDay][fromMeal].find(r => r.id === rowId);
+    if (!row) return;
+    const dest = S[toUser].days[toDay][toMeal];
+    const existing = dest.find(r => r.foodId === row.foodId);
+    if (existing) {
+      existing.qty = row.qty;
+    } else {
+      const last = dest[dest.length - 1];
+      if (!last.foodId) { last.foodId = row.foodId; last.qty = row.qty; }
+      else dest.push({ id: ++rid, foodId: row.foodId, qty: row.qty });
+    }
+    S[toUser].openMeals.add(toMeal);
+  } else {
+    // Copy full meal
+    const fromRows = S[fromUser].days[fromDay][fromMeal].filter(r => r.foodId);
+    fromRows.forEach(row => {
+      const dest = S[toUser].days[toDay][toMeal];
+      const existing = dest.find(r => r.foodId === row.foodId);
+      if (existing) {
+        existing.qty = row.qty;
+      } else {
+        const last = dest[dest.length - 1];
+        if (!last.foodId) { last.foodId = row.foodId; last.qty = row.qty; }
+        else dest.push({ id: ++rid, foodId: row.foodId, qty: row.qty });
+      }
+    });
+    S[toUser].openMeals.add(toMeal);
+  }
+
+  renderPanel(toUser);
+  if (toUser !== fromUser) renderPanel(fromUser);
+  saveState();
+  closeCopyPicker();
+  const fd = isSingleFood ? byId(S[fromUser].days[fromDay][fromMeal].find(r=>r.id===rowId)?.foodId) : null;
+  toast((isSingleFood && fd ? fd.name : fromMeal) + ' copied to ' + S[toUser].label + ' · ' + toDay);
 }
 
 // ── ACTIONS ──
@@ -2004,7 +2181,7 @@ function setFood(u,m,id,val){
 }
 function setQ(u,m,id,val){
   const r=S[u].days[S[u].active][m].find(r=>r.id===id);
-  if(r)r.qty=Math.max(0.01,parseFloat(val)||0.5);
+  if(r){saveSnapshot(u);r.qty=Math.max(0.01,parseFloat(val)||0.5);}
   renderPanel(u);
   // If other user has same food on same day, re-render them too so combined warning updates
   const other=u==='lewis'?'charlotte':'lewis';
@@ -2019,6 +2196,7 @@ function setQ(u,m,id,val){
 function stepQ(u,m,id,d){
   const r=S[u].days[S[u].active][m].find(r=>r.id===id);
   if(r){
+    saveSnapshot(u);
     r.qty=Math.max(0.01,parseFloat((r.qty+d).toFixed(2)));
     renderPanel(u);
     const other=u==='lewis'?'charlotte':'lewis';
@@ -2187,16 +2365,13 @@ function generateList(){
     const amtStr=isW?Math.round(totalAmt)+fd.unit:Math.round(totalAmt*10)/10+' '+fd.unit;
     let packWarnStr='';
     if(fd.pack){
-      const packs=totalAmt/fd.pack;
-      const whole=Math.abs(packs-Math.round(packs))<0.05;
-      if(whole){
-        packWarnStr=`<span style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace"> ✓ ${Math.round(packs)} pack${Math.round(packs)!==1?'s':''}</span>`;
+      const packsNeeded=totalAmt/fd.pack;
+      const wholeP=Math.abs(packsNeeded-Math.round(packsNeeded))<0.05;
+      if(wholeP){
+        packWarnStr=`<span style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace"> · ${Math.round(packsNeeded)} pack${Math.round(packsNeeded)!==1?'s':''}</span>`;
       } else {
-        const lo=Math.floor(packs)*fd.pack||fd.pack;
-        const hi=Math.ceil(packs)*fd.pack;
-        // Suggest adjusting to nearest whole pack
-        const suggestion=Math.round(packs)===0?hi:Math.round(packs)*fd.pack;
-        packWarnStr=`<span style="font-size:10px;color:var(--warn);font-family:'DM Mono',monospace"> ⚠ ${fd.pack}${fd.unit} pack: need ${amtStr}, try ${Math.round(hi/fd.pack)} packs (${hi}${isW?fd.unit:''})</span>`;
+        const hiP=Math.ceil(packsNeeded);
+        packWarnStr=`<span style="font-size:10px;color:var(--warn);font-family:'DM Mono',monospace"> · buy ${hiP} pack${hiP!==1?'s':''}</span>`;
       }
     }
     // User breakdown
