@@ -577,8 +577,8 @@ document.fonts.ready.then(function() {
     </div>
     <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;min-width:0">
       <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices" style="min-width:56px;text-align:center">Save</button>
-      <button id="redo-btn" onclick="doRedo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to redo" disabled>↷</button>
-      <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to undo" disabled>↶</button>
+      <button id="redo-btn" onclick="doRedo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:#888;font-family:'DM Sans',sans-serif;font-size:14px;cursor:not-allowed;white-space:nowrap;opacity:0.5" title="Nothing to redo" disabled>↷</button>
+      <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:#888;font-family:'DM Sans',sans-serif;font-size:14px;cursor:not-allowed;white-space:nowrap;opacity:0.5" title="Nothing to undo" disabled>↶</button>
       <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as JSON backup">Export</button>
       <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Import JSON backup">Import</button>
     </div>
@@ -1774,6 +1774,7 @@ function renderSavedDaysView(el) {
         <div><div class="sdl-name">${sd.name}</div><div class="sdl-meta">${foodCount} foods · ${sd.user} · ${sd.dayType}</div></div>
         <div class="sdl-actions">
           <button class="sdl-btn" onclick="openPreview(${sd.id})">Preview</button>
+          <button class="sdl-btn" onclick="openMealLibrary(${sd.id})">Meals</button>
           <button class="sdl-btn" onclick="openAssignDay(${sd.id})">Assign to...</button>
           <button class="sdl-btn sdl-del" onclick="deleteSavedDay(${sd.id})">&#215;</button>
         </div>
@@ -1781,16 +1782,6 @@ function renderSavedDaysView(el) {
     }).join('')}
   </div>`;
 
-  // Append meal library section below
-  const mealLibDiv = document.createElement('div');
-  mealLibDiv.style.cssText = 'margin-top:16px';
-  const expanded = _savedViewMode === 'meals';
-  mealLibDiv.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 2px;cursor:pointer" onclick="switchSavedView(_savedViewMode==='meals'?'days':'meals')">
-    <div style="font-size:12px;font-weight:600;color:var(--text2)">Meal Library</div>
-    <div style="font-size:11px;color:var(--text3)">${expanded ? '▲ Hide' : '▼ Browse by meal'}</div>
-  </div>
-  ${expanded ? renderSavedMealsHTML() : ''}`;
-  el.appendChild(mealLibDiv);
 }
 
 function renderSavedMealsHTML() {
@@ -1975,7 +1966,7 @@ function renderDB() {
   ];
   document.getElementById('db-body').innerHTML = sorted.map(f =>
     `<tr>
-      <td style="display:flex;align-items:center;gap:4px;min-width:120px;max-width:200px">${f.name}${f.id >= 10000 ? ' <span style="font-size:9px;color:var(--accent)">custom</span><button onclick="deleteCustomFood('+f.id+')" style="margin-left:auto;padding:1px 6px;border:1px solid #e55;border-radius:3px;background:transparent;color:#e55;font-size:9px;cursor:pointer">del</button>' : ''}</td>
+      <td style="min-width:120px;max-width:180px"><div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">${f.name}${f.id >= 10000 ? '<span style="font-size:9px;color:var(--accent);margin-left:4px;flex-shrink:0">custom</span><button onclick="deleteCustomFood('+f.id+')" style="margin-left:auto;padding:1px 6px;border:1px solid #e55;border-radius:3px;background:transparent;color:#e55;font-size:9px;cursor:pointer;flex-shrink:0">del</button>' : ''}</div></td>
       <td style="font-size:9px;color:var(--text3)">${f.cat||''}</td>
       <td>${f.serving}</td>
       <td>${f.kcal}</td>
@@ -2172,21 +2163,21 @@ function setUndoBtn(canUndo, canRedo, user) {
   if (uBtn) {
     if (canUndo) {
       uBtn.removeAttribute('disabled');
-      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1";
+      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;white-space:nowrap;opacity:1";
       if (user) uBtn.dataset.undoUser = user;
     } else {
       uBtn.setAttribute('disabled','');
-      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4";
+      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:#888;font-family:'DM Sans',sans-serif;font-size:14px;cursor:not-allowed;white-space:nowrap;opacity:0.5";
     }
   }
   if (rBtn) {
     if (canRedo) {
       rBtn.removeAttribute('disabled');
-      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1";
+      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;white-space:nowrap;opacity:1";
       if (user) rBtn.dataset.redoUser = user;
     } else {
       rBtn.setAttribute('disabled','');
-      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4";
+      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:#888;font-family:'DM Sans',sans-serif;font-size:14px;cursor:not-allowed;white-space:nowrap;opacity:0.5";
     }
   }
 }
@@ -2338,6 +2329,33 @@ function executeCopy(toUser, toDay, toMeal, isSingleFood) {
   closeCopyPicker();
   const fd = isSingleFood ? byId(S[fromUser].days[fromDay][fromMeal].find(r=>r.id===rowId)?.foodId) : null;
   toast((isSingleFood && fd ? fd.name : fromMeal) + ' copied to ' + S[toUser].label + ' · ' + toDay);
+}
+
+
+function openMealLibrary(savedDayId) {
+  const sd = savedDays.find(s => s.id === savedDayId);
+  if (!sd) return;
+  document.getElementById('preview-title').textContent = sd.name + ' — Meals';
+  let html = '';
+  MEALS.forEach(meal => {
+    const rows = sd.meals[meal] ? sd.meals[meal].filter(r => r.foodId) : [];
+    const foods = rows.map(r => { const fd = byId(r.foodId); return fd ? fd.name : null; }).filter(Boolean);
+    html += '<div class="preview-meal">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+    html += '<div class="preview-meal-name">' + meal + '</div>';
+    if (foods.length) {
+      html += '<button class="sdl-btn" style="font-size:9px;padding:2px 7px" onclick="openCopyMealFromSaved(' + savedDayId + ',\'' + meal + '\')">Copy meal to...</button>';
+    }
+    html += '</div>';
+    if (foods.length) {
+      foods.forEach(name => { html += '<div class="preview-food">' + name + '</div>'; });
+    } else {
+      html += '<div class="preview-empty">Nothing planned</div>';
+    }
+    html += '</div>';
+  });
+  document.getElementById('preview-body').innerHTML = html;
+  document.getElementById('preview-overlay').style.display = 'flex';
 }
 
 // ── ACTIONS ──
