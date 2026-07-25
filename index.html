@@ -577,6 +577,7 @@ document.fonts.ready.then(function() {
     </div>
     <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
       <button id="save-btn" class="save-btn" onclick="manualSave()" title="Save to cloud — syncs to all devices">Save</button>
+      <button id="redo-btn" onclick="doRedo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to redo" disabled>&#8618; Redo</button>
       <button id="undo-btn" onclick="doUndo()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4" title="Nothing to undo" disabled>&#8617; Undo</button>
       <button onclick="exportData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Export as JSON backup">Export</button>
       <button onclick="importData()" style="padding:4px 9px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap" title="Import JSON backup">Import</button>
@@ -658,27 +659,14 @@ document.fonts.ready.then(function() {
   <div id="view-saved" class="view sv2" style="display:none">
     <div class="si">
       <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div><h2>Saved Days</h2><p>Save a named day plan and assign it to any day type.</p></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div>
-              <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Save whose day</div>
-              <select id="save-day-user" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px">
-                <option value="lewis">Lewis</option>
-                <option value="charlotte">Charlotte</option>
-              </select>
-            </div>
-            <div>
-              <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Day name</div>
-              <input id="save-day-name" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;box-sizing:border-box" placeholder="e.g. High protein day">
-            </div>
-          </div>
-          <button class="gbtn" onclick="saveCurrentDay()" style="align-self:flex-end">Save</button>
+        <div><h2>Saved</h2><p>Save day plans and individual meals.</p></div>
+        <div style="display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px">
+          <button id="saved-view-days" class="nb on" onclick="switchSavedView('days',this)" style="font-size:11px;padding:4px 10px">Full Days</button>
+          <button id="saved-view-meals" class="nb" onclick="switchSavedView('meals',this)" style="font-size:11px;padding:4px 10px">By Meal</button>
         </div>
       </div>
-      <div id="saved-days-list"><div class="empty">No saved days yet. Plan a day then save it above.</div></div>
+      <div id="saved-view-content"></div>
+      <div id="saved-days-list" style="display:none"></div>
     </div>
   </div>
 
@@ -892,8 +880,8 @@ function initAuth() {
 
 const FOODS=[{id:1,name:"5% Fat Beef Mince",c:0,p:20.8,f:4.5,kcal:124,serving:100,unit:"g",pack:500,cat:"Protein"},{id:2,name:"85% Dark Chocolate",c:5.2,p:1.8,f:10.4,kcal:122,serving:20,unit:"g",pack:null,cat:"Snacks & Bars"},{id:3,name:"Almond Butter",c:3,p:3,f:8,kcal:96,serving:15,unit:"g",pack:null,cat:"Dairy"},{id:4,name:"Almonds",c:1.9,p:4.2,f:9.9,kcal:114,serving:20,unit:"g",pack:null,cat:"Snacks & Bars"},{id:5,name:"Alpen Light Bar",c:17,p:0.9,f:1.1,kcal:82,serving:1,unit:"bar",pack:null,cat:"Snacks & Bars"},{id:6,name:"Apple",c:35,p:0,f:0,kcal:140,serving:1,unit:"whole",pack:null,cat:"Veg & Fruit"},{id:7,name:"Asparagus",c:3.9,p:2.2,f:0.1,kcal:25,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:8,name:"Aubergine",c:2.2,p:0.9,f:0.4,kcal:16,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:9,name:"Avocado",c:12.8,p:3,f:22,kcal:261,serving:1,unit:"whole",pack:null,cat:"Veg & Fruit"},{id:10,name:"Bacon Medallions",c:0,p:31.5,f:7.5,kcal:194,serving:100,unit:"g",pack:null,cat:"Protein"},{id:11,name:"Banana",c:27,p:1.3,f:0,kcal:113,serving:1,unit:"whole",pack:null,cat:"Veg & Fruit"},{id:12,name:"Basmati Rice (micro)",c:42,p:4.9,f:0.9,kcal:196,serving:125,unit:"g",pack:125,cat:"Carbs"},{id:13,name:"Bean Sprouts",c:3.8,p:2.9,f:0.5,kcal:31,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:14,name:"Beef Jerky",c:5,p:10.3,f:1,kcal:70,serving:25,unit:"g",pack:null,cat:"Protein"},{id:15,name:"Gammon Steak",c:0.2,p:48,f:9,kcal:274,serving:225,unit:"g",pack:225,cat:"Protein"},{id:16,name:"Black Beans",c:23,p:10.5,f:0.7,kcal:140,serving:100,unit:"g",pack:null,cat:"Protein"},{id:17,name:"Blueberries",c:14.5,p:0.8,f:0.3,kcal:64,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:18,name:"Brazil Nuts",c:0.5,p:2.1,f:10.2,kcal:102,serving:15,unit:"g",pack:null,cat:"Snacks & Bars"},{id:19,name:"Cabbage",c:5.2,p:1.1,f:0.1,kcal:26,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:20,name:"Cashew Butter",c:5.5,p:2.5,f:7.5,kcal:100,serving:1,unit:"tbsp",pack:null,cat:"Dairy"},{id:21,name:"Cashew Nuts",c:2.8,p:2.8,f:6.7,kcal:83,serving:15,unit:"g",pack:null,cat:"Snacks & Bars"},{id:22,name:"Celery",c:2.2,p:0.6,f:0.1,kcal:12,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:23,name:"Chick Peas",c:45,p:6,f:4.6,kcal:245,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:24,name:"Chicken Breast",c:0,p:37.7,f:2.7,kcal:175,serving:170,unit:"g",pack:null,cat:"Protein"},{id:25,name:"Coco Pops",c:50,p:3,f:1.6,kcal:226,serving:60,unit:"g",pack:null,cat:"Snacks & Bars"},{id:26,name:"Coconut Oil",c:0,p:0,f:5,kcal:45,serving:1,unit:"tsp",pack:null,cat:"Sauces & Condiments"},{id:27,name:"Cod",c:0,p:23,f:0.8,kcal:99,serving:100,unit:"g",pack:null,cat:"Protein"},{id:28,name:"Cottage Cheese",c:1,p:13,f:4,kcal:92,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:29,name:"Courgette",c:1.8,p:1.8,f:0.4,kcal:18,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:30,name:"Cous Cous",c:23.7,p:4.9,f:3.1,kcal:142,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:31,name:"Cucumber",c:3.6,p:0.6,f:0.1,kcal:18,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:32,name:"Edamame",c:8,p:7.9,f:3,kcal:91,serving:60,unit:"g",pack:null,cat:"Protein"},{id:33,name:"Egg White",c:0.2,p:3.6,f:0.1,kcal:16,serving:1,unit:"egg white",pack:null,cat:"Protein"},{id:34,name:"Fat Free Greek Yoghurt",c:4.4,p:15.9,f:0,kcal:81,serving:200,unit:"g",pack:null,cat:"Dairy"},{id:35,name:"Flax Seeds",c:4.2,p:3,f:6.6,kcal:88,serving:15,unit:"g",pack:null,cat:"Other"},{id:36,name:"Full Fat Greek Yogurt",c:5.5,p:4.2,f:9.5,kcal:124,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:37,name:"Grapes",c:16,p:0.6,f:0.2,kcal:68,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:38,name:"Green Beans",c:3.2,p:1.9,f:0.5,kcal:25,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:39,name:"Grenade Bar",c:13.6,p:23.3,f:8,kcal:220,serving:1,unit:"bar",pack:null,cat:"Protein"},{id:40,name:"Halloumi Light",c:1.4,p:8,f:3.8,kcal:72,serving:30,unit:"g",pack:null,cat:"Dairy"},{id:41,name:"Heck Chicken Sausages",c:4.7,p:20.5,f:5.6,kcal:151,serving:100,unit:"g",pack:null,cat:"Protein"},{id:42,name:"Honey",c:17.3,p:0.1,f:0,kcal:70,serving:1,unit:"tbsp",pack:null,cat:"Sauces & Condiments"},{id:43,name:"Hummus",c:4,p:2,f:5,kcal:69,serving:2,unit:"tbsp",pack:null,cat:"Sauces & Condiments"},{id:44,name:"Impact Diet Whey",c:2.5,p:15.8,f:1.6,kcal:88,serving:25,unit:"g",pack:null,cat:"Protein"},{id:45,name:"Impact Whey (MyProtein)",c:1.5,p:20.5,f:1.7,kcal:103,serving:25,unit:"g",pack:null,cat:"Protein"},{id:46,name:"Kale",c:5.9,p:2.9,f:0.6,kcal:41,serving:25,unit:"g",pack:null,cat:"Veg & Fruit"},{id:47,name:"Kiwi",c:12,p:1,f:0.5,kcal:57,serving:1,unit:"whole",pack:null,cat:"Veg & Fruit"},{id:48,name:"Large Egg",c:0,p:6,f:5,kcal:69,serving:1,unit:"whole",pack:null,cat:"Protein"},{id:49,name:"Lentils",c:13,p:12,f:0.6,kcal:105,serving:100,unit:"g",pack:null,cat:"Protein"},{id:50,name:"Lettuce",c:3.3,p:1.2,f:0.3,kcal:21,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:51,name:"Linda McCarthy Sausages",c:6.9,p:16.4,f:5,kcal:138,serving:2,unit:"whole",pack:null,cat:"Protein"},{id:52,name:"Lurpak Butter",c:0.1,p:0.3,f:4,kcal:38,serving:10,unit:"g",pack:null,cat:"Dairy"},{id:53,name:"Medium Egg",c:0,p:6,f:4,kcal:60,serving:1,unit:"whole",pack:null,cat:"Protein"},{id:54,name:"Melon",c:9,p:1,f:0.2,kcal:42,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:55,name:"Olive Oil",c:0,p:0,f:4.5,kcal:41,serving:1,unit:"tsp",pack:null,cat:"Sauces & Condiments"},{id:56,name:"Orange",c:15.4,p:1.2,f:0.2,kcal:68,serving:1,unit:"whole",pack:null,cat:"Veg & Fruit"},{id:57,name:"Pea Protein",c:1,p:24,f:2,kcal:118,serving:25,unit:"g",pack:null,cat:"Protein"},{id:58,name:"Pineapple",c:13,p:0.5,f:0.1,kcal:55,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:59,name:"Pistachio Nuts",c:4.1,p:3.1,f:6.8,kcal:90,serving:1,unit:"tsp",pack:null,cat:"Snacks & Bars"},{id:60,name:"Porridge Oats",c:30.2,p:5.2,f:3.5,kcal:173,serving:50,unit:"g",pack:null,cat:"Carbs"},{id:61,name:"Prawns",c:0,p:23,f:0.6,kcal:97,serving:100,unit:"g",pack:null,cat:"Protein"},{id:62,name:"Quinoa",c:41.3,p:7.9,f:3.5,kcal:228,serving:60,unit:"g",pack:null,cat:"Carbs"},{id:63,name:"Quorn Ground Beef",c:10.6,p:15.3,f:2.4,kcal:125,serving:100,unit:"g",pack:null,cat:"Protein"},{id:64,name:"Raspberries",c:4.6,p:0.4,f:0.3,kcal:23,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:65,name:"Red Onion",c:9.3,p:1.1,f:0.1,kcal:43,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:66,name:"Red Pepper",c:6,p:2,f:0.3,kcal:35,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:67,name:"Dark Choc Rice Cakes",c:20,p:2.4,f:7.8,kcal:160,serving:2,unit:"whole",pack:null,cat:"Carbs"},{id:68,name:"Rice Krispies",c:52,p:4.2,f:0.8,kcal:232,serving:60,unit:"g",pack:null,cat:"Carbs"},{id:69,name:"Rice Protein",c:2,p:12,f:0,kcal:56,serving:25,unit:"g",pack:null,cat:"Protein"},{id:70,name:"Salmon Fillet",c:0,p:30,f:17.5,kcal:278,serving:120,unit:"g",pack:null,cat:"Protein"},{id:71,name:"Sea Bass",c:0,p:23,f:2.5,kcal:115,serving:100,unit:"g",pack:null,cat:"Protein"},{id:72,name:"Seitan",c:8,p:25,f:2,kcal:150,serving:100,unit:"g",pack:null,cat:"Protein"},{id:73,name:"Skimmed Milk",c:7.5,p:5.1,f:0.2,kcal:52,serving:150,unit:"ml",pack:null,cat:"Dairy"},{id:74,name:"Skyr Yogurt",c:3.5,p:11,f:0.2,kcal:60,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:75,name:"Smoked Salmon",c:0,p:23.3,f:14,kcal:219,serving:100,unit:"g",pack:null,cat:"Protein"},{id:76,name:"Smooth Peanut Butter",c:1.5,p:3.6,f:8,kcal:92,serving:15,unit:"g",pack:null,cat:"Dairy"},{id:77,name:"Spinach",c:3,p:2,f:0,kcal:20,serving:25,unit:"g",pack:null,cat:"Veg & Fruit"},{id:78,name:"Sprouts",c:4.1,p:3.5,f:1.4,kcal:43,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:79,name:"Steak Fillet",c:0,p:35.5,f:13.4,kcal:263,serving:170,unit:"g",pack:null,cat:"Protein"},{id:80,name:"Strawberries",c:7.7,p:0.7,f:0.3,kcal:36,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:81,name:"Strawberry Jam",c:10,p:0,f:0,kcal:40,serving:15,unit:"g",pack:null,cat:"Veg & Fruit"},{id:82,name:"Sweet Potato",c:52.8,p:4.1,f:0.2,kcal:229,serving:260,unit:"g",pack:null,cat:"Carbs"},{id:83,name:"Tofu",c:2.4,p:8.2,f:4.7,kcal:85,serving:100,unit:"g",pack:null,cat:"Protein"},{id:84,name:"Tomatoes",c:3.9,p:0.9,f:0.2,kcal:21,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:85,name:"Tuna (springwater)",c:0,p:25,f:0,kcal:100,serving:1,unit:"tin",pack:1,cat:"Protein"},{id:86,name:"Tuna Steak",c:0,p:25.4,f:0.4,kcal:105,serving:100,unit:"g",pack:null,cat:"Protein"},{id:87,name:"Turkey Breast",c:0,p:33.4,f:1.8,kcal:150,serving:150,unit:"g",pack:null,cat:"Protein"},{id:88,name:"Turkey Mince",c:0,p:29.8,f:8.4,kcal:195,serving:150,unit:"g",pack:null,cat:"Protein"},{id:89,name:"Walnuts",c:2,p:2.5,f:10,kcal:108,serving:15,unit:"g",pack:null,cat:"Snacks & Bars"},{id:90,name:"Watermelon",c:7,p:0.6,f:0.2,kcal:32,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:91,name:"Whey Isolate (MyProtein)",c:0.6,p:23,f:0.3,kcal:97,serving:25,unit:"g",pack:null,cat:"Protein"},{id:92,name:"White Bagel (NYB)",c:42.8,p:8.1,f:1.2,kcal:214,serving:1,unit:"whole",pack:null,cat:"Carbs"},{id:93,name:"White Onion",c:10,p:1.1,f:0,kcal:44,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:94,name:"White Potato",c:16,p:1.7,f:0,kcal:71,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:95,name:"Wholemeal Bagel (NYB)",c:49,p:11,f:2.5,kcal:263,serving:1,unit:"whole",pack:null,cat:"Carbs"},{id:96,name:"Wholemeal Bread",c:27,p:6.2,f:1.8,kcal:149,serving:2,unit:"slices",pack:null,cat:"Carbs"},{id:97,name:"Wholemeal Pasta",c:62,p:15,f:3.5,kcal:340,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:98,name:"Wholemeal Wrap",c:33,p:7,f:3.6,kcal:192,serving:1,unit:"whole",pack:null,cat:"Carbs"},{id:99,name:"Light Mayonnaise",c:1,p:0,f:4,kcal:40,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:100,name:"BBQ Sauce",c:5,p:0,f:0,kcal:20,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:101,name:"Ketchup",c:4,p:0,f:0,kcal:16,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:102,name:"Cajun Spice",c:1,p:0,f:0,kcal:4,serving:5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:103,name:"Chinese 5 Spice",c:3,p:0,f:0,kcal:12,serving:5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:104,name:"Garlic",c:1,p:0,f:1,kcal:13,serving:5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:105,name:"Broccoli",c:7,p:2.8,f:0,kcal:39,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:106,name:"Spicy Mexican Rice (micro)",c:36,p:4.8,f:3.8,kcal:197,serving:125,unit:"g",pack:125,cat:"Carbs"},{id:107,name:"Pilau Rice (micro)",c:36.1,p:3.8,f:2.8,kcal:185,serving:125,unit:"g",pack:125,cat:"Carbs"},{id:108,name:"Egg Fried Rice (micro)",c:35,p:4.9,f:3.6,kcal:192,serving:125,unit:"g",pack:125,cat:"Protein"},{id:109,name:"Utterly Butterly",c:0.2,p:0,f:4.9,kcal:45,serving:10,unit:"g",pack:null,cat:"Dairy"},{id:110,name:"MyProtein Chocolate Spread",c:5,p:3.1,f:5.6,kcal:83,serving:15,unit:"g",pack:null,cat:"Protein"},{id:111,name:"MyProtein Pancake Mix",c:7.5,p:30.5,f:3.2,kcal:181,serving:50,unit:"g",pack:null,cat:"Protein"},{id:112,name:"Carrots",c:32,p:3.3,f:0.7,kcal:148,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:113,name:"Crunchy Peanut Butter",c:1.7,p:3.7,f:8,kcal:94,serving:15,unit:"g",pack:null,cat:"Dairy"},{id:114,name:"10% Mince Beef",c:0,p:21.9,f:9.6,kcal:174,serving:100,unit:"g",pack:500,cat:"Protein"},{id:115,name:"20% Mince Beef",c:0,p:18.4,f:19.8,kcal:252,serving:100,unit:"g",pack:500,cat:"Protein"},{id:116,name:"Smoked Back Bacon",c:0,p:4.6,f:3.1,kcal:46,serving:1,unit:"rasher",pack:null,cat:"Protein"},{id:117,name:"Baked Beans",c:25,p:9.4,f:0.4,kcal:141,serving:200,unit:"g",pack:400,cat:"Protein"},{id:118,name:"Chopped Tomatoes",c:4,p:1.4,f:0.2,kcal:23,serving:100,unit:"g",pack:400,cat:"Veg & Fruit"},{id:119,name:"Wholemeal Pitta",c:27.6,p:6.7,f:1.6,kcal:152,serving:1,unit:"whole",pack:null,cat:"Carbs"},{id:120,name:"Mushrooms",c:0.4,p:1.8,f:0.5,kcal:13,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:121,name:"Diced Chorizo",c:0.3,p:7.8,f:8.4,kcal:108,serving:30,unit:"g",pack:null,cat:"Protein"},{id:122,name:"Ham",c:0.3,p:1.8,f:0.3,kcal:11,serving:1,unit:"slice",pack:null,cat:"Protein"},{id:123,name:"Cayenne Pepper",c:1,p:0,f:0,kcal:4,serving:5,unit:"g",pack:null,cat:"Veg & Fruit"},{id:124,name:"Chilli Powder",c:1.1,p:0.7,f:0.5,kcal:12,serving:5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:125,name:"Semi Skimmed Milk",c:7.2,p:5.4,f:2.7,kcal:75,serving:150,unit:"ml",pack:null,cat:"Dairy"},{id:126,name:"Mixed Frozen Veg",c:7.2,p:3.1,f:0.8,kcal:48,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:127,name:"Brown Sauce",c:3.6,p:0.1,f:0,kcal:15,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:128,name:"Spring Onion",c:0.6,p:0.4,f:0,kcal:4,serving:20,unit:"g",pack:null,cat:"Veg & Fruit"},{id:129,name:"Mozzarella Cheese",c:1.3,p:9.3,f:7.9,kcal:114,serving:30,unit:"g",pack:null,cat:"Dairy"},{id:130,name:"Pesto",c:0.9,p:3.3,f:9,kcal:98,serving:30,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:131,name:"Parsnips",c:12.5,p:1.8,f:1.1,kcal:67,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:132,name:"Casein Protein",c:2.5,p:20.8,f:0.3,kcal:96,serving:25,unit:"g",pack:null,cat:"Protein"},{id:133,name:"Peanuts",c:3.2,p:5.2,f:9.8,kcal:122,serving:20,unit:"g",pack:null,cat:"Snacks & Bars"},{id:134,name:"Marmalade",c:13.3,p:0.1,f:0,kcal:54,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:135,name:"Tesco Fruit & Nut Granola",c:29,p:5.3,f:7.1,kcal:201,serving:50,unit:"g",pack:null,cat:"Snacks & Bars"},{id:136,name:"Weetabix",c:26,p:4.5,f:0.8,kcal:129,serving:2,unit:"biscuits",pack:null,cat:"Snacks & Bars"},{id:137,name:"Lentil Curls Crisps",c:12.3,p:2.1,f:4,kcal:94,serving:20,unit:"g",pack:null,cat:"Veg & Fruit"},{id:138,name:"Almond Milk",c:3.3,p:0.4,f:0.8,kcal:22,serving:100,unit:"ml",pack:null,cat:"Dairy"},{id:139,name:"Coconut Milk",c:0.4,p:0,f:1.9,kcal:19,serving:100,unit:"ml",pack:null,cat:"Dairy"},{id:140,name:"Mild Cheddar Cheese",c:0,p:7.6,f:10.5,kcal:125,serving:30,unit:"g",pack:null,cat:"Dairy"},{id:141,name:"Diet Coke",c:0,p:0,f:0,kcal:0,serving:250,unit:"ml",pack:null,cat:"Drinks"},{id:142,name:"Diet Lemonade",c:0,p:0,f:0,kcal:0,serving:250,unit:"ml",pack:null,cat:"Drinks"},{id:143,name:"Vodka",c:14.4,p:0,f:0,kcal:58,serving:25,unit:"ml",pack:null,cat:"Drinks"},{id:144,name:"Gin",c:14.4,p:0,f:0,kcal:58,serving:25,unit:"ml",pack:null,cat:"Drinks"},{id:145,name:"Coco Pops Bar",c:14,p:1.5,f:2,kcal:80,serving:1,unit:"whole",pack:null,cat:"Snacks & Bars"},{id:146,name:"Pop Chips",c:11,p:1,f:2.9,kcal:74,serving:17,unit:"g",pack:null,cat:"Snacks & Bars"},{id:147,name:"Hard Boiled Egg",c:0.5,p:5.5,f:4.7,kcal:66,serving:1,unit:"whole",pack:null,cat:"Protein"},{id:148,name:"Snack-a-jacks",c:11,p:0.7,f:0.3,kcal:50,serving:1,unit:"cake",pack:null,cat:"Snacks & Bars"},{id:149,name:"Sun Bites",c:15.3,p:1.8,f:5.4,kcal:117,serving:25,unit:"g",pack:null,cat:"Snacks & Bars"},{id:150,name:"Propercorn",c:8.8,p:0.7,f:2.5,kcal:61,serving:14,unit:"g",pack:null,cat:"Snacks & Bars"},{id:151,name:"Ryvita Dark Rye",c:13,p:2,f:0,kcal:60,serving:2,unit:"crackers",pack:null,cat:"Snacks & Bars"},{id:152,name:"KIND Bar",c:21,p:3,f:12,kcal:204,serving:1,unit:"bar",pack:null,cat:"Snacks & Bars"},{id:153,name:"Olives",c:1,p:0,f:2.5,kcal:27,serving:5,unit:"whole",pack:null,cat:"Sauces & Condiments"},{id:154,name:"Venison",c:0,p:33.8,f:3,kcal:162,serving:115,unit:"g",pack:null,cat:"Protein"},{id:155,name:"Soy Milk",c:5.5,p:4.1,f:2.2,kcal:58,serving:100,unit:"ml",pack:null,cat:"Dairy"},{id:156,name:"Tinned Sardines",c:1.1,p:22.2,f:13,kcal:210,serving:120,unit:"g",pack:120,cat:"Protein"},{id:157,name:"Tinned Mackerel",c:0,p:14.6,f:16.7,kcal:209,serving:90,unit:"g",pack:null,cat:"Protein"},{id:158,name:"Branflakes",c:31.7,p:6,f:1.3,kcal:163,serving:50,unit:"g",pack:null,cat:"Snacks & Bars"},{id:159,name:"Egg Noodles",c:38.3,p:7.5,f:3.5,kcal:215,serving:150,unit:"g",pack:null,cat:"Protein"},{id:160,name:"MyProtein All Natural PB",c:1.8,p:4.5,f:6.9,kcal:87,serving:15,unit:"g",pack:null,cat:"Protein"},{id:161,name:"Beetroot",c:10,p:2,f:0,kcal:48,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:162,name:"MyProtein Lean Protein Bar",c:11,p:18,f:4.6,kcal:157,serving:45,unit:"bar",pack:null,cat:"Protein"},{id:163,name:"MyProtein Cookie",c:19.5,p:37.5,f:9.9,kcal:317,serving:1,unit:"cookie",pack:null,cat:"Protein"},{id:164,name:"MyProtein Brownie",c:27,p:23,f:9.7,kcal:287,serving:75,unit:"g",pack:null,cat:"Protein"},{id:165,name:"MyProtein High Protein Bar",c:24,p:30,f:6.3,kcal:273,serving:1,unit:"bar",pack:null,cat:"Protein"},{id:166,name:"MyProtein Carb Crusher",c:12,p:21,f:8.2,kcal:206,serving:60,unit:"g",pack:null,cat:"Protein"},{id:167,name:"Cocoa Nakd Bar",c:17,p:3,f:5,kcal:125,serving:1,unit:"bar",pack:null,cat:"Snacks & Bars"},{id:168,name:"Tesco Super Berry Granola",c:34.2,p:4.1,f:6.8,kcal:214,serving:50,unit:"g",pack:null,cat:"Snacks & Bars"},{id:169,name:"Frozen Peas",c:13.8,p:5.7,f:0.6,kcal:83,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:170,name:"Quorn Chicken",c:4,p:11.5,f:1.5,kcal:76,serving:100,unit:"g",pack:null,cat:"Protein"},{id:171,name:"Duck Egg",c:1,p:9,f:9.7,kcal:127,serving:1,unit:"whole",pack:null,cat:"Protein"},{id:172,name:"Cyclic Dextrin",c:23.2,p:0,f:0,kcal:93,serving:25,unit:"g",pack:null,cat:"Carbs"},{id:173,name:"White Potato (Jacket)",c:17.2,p:2.1,f:0.2,kcal:91,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:174,name:"Vegetable Stir Fry",c:6.4,p:3,f:3.8,kcal:80,serving:160,unit:"1/2 bag",pack:null,cat:"Veg & Fruit"},{id:175,name:"Hoisin Sauce",c:19.8,p:0.9,f:0.3,kcal:87,serving:90,unit:"1/2 pack",pack:null,cat:"Sauces & Condiments"},{id:176,name:"Warburtons Thin Bagel White",c:23.7,p:4.9,f:0.6,kcal:120,serving:1,unit:"bagel",pack:null,cat:"Carbs"},{id:177,name:"Warburtons Thins Brown",c:18.1,p:4,f:1.1,kcal:100,serving:1,unit:"thin",pack:null,cat:"Carbs"},{id:178,name:"Rice Krispy Squares Bar",c:24,p:1,f:3,kcal:130,serving:1,unit:"bar",pack:null,cat:"Carbs"},{id:179,name:"Sweet Chilli Sauce",c:4.4,p:0,f:0.1,kcal:18,serving:10,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:180,name:"Diced Beef",c:0.4,p:22.2,f:3.4,kcal:122,serving:100,unit:"g",pack:null,cat:"Protein"},{id:181,name:"Beef Stock Cube",c:2.1,p:1,f:0.3,kcal:16,serving:1,unit:"cube",pack:null,cat:"Protein"},{id:182,name:"Low Fat Bolognese Sauce",c:6,p:1.2,f:0.1,kcal:33,serving:100,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:183,name:"Sharwood Hoisin Sauce",c:7.1,p:0.5,f:0.5,kcal:35,serving:1,unit:"tbsp",pack:null,cat:"Sauces & Condiments"},{id:184,name:"Sun Dried Tomatoes",c:18,p:3.9,f:10.7,kcal:184,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:185,name:"Kidney Beans",c:8.1,p:4.7,f:0.5,kcal:67,serving:100,unit:"g",pack:null,cat:"Protein"},{id:186,name:"Colmans Chilli Con Carne Mix",c:8,p:1.2,f:0.47,kcal:43,serving:12.5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:187,name:"Salsa",c:2.9,p:0.7,f:1.4,kcal:27,serving:50,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:188,name:"Philadelphia Light",c:5.2,p:7.4,f:11,kcal:148,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:189,name:"Fajita Spice Mix",c:1.8,p:0,f:0.8,kcal:40,serving:1,unit:"half packet",pack:null,cat:"Sauces & Condiments"},{id:190,name:"Mini White Wraps",c:14.4,p:2,f:2.3,kcal:88,serving:1,unit:"wrap",pack:null,cat:"Carbs"},{id:191,name:"Sharwood Balti Sauce",c:6.7,p:1.2,f:5.6,kcal:86,serving:105,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:192,name:"Schwartz Fish Lemon Parsley Sauce",c:4.8,p:0.9,f:2.8,kcal:49,serving:75,unit:"g",pack:null,cat:"Protein"},{id:193,name:"Orzo",c:53.6,p:10.9,f:1.1,kcal:275,serving:75,unit:"g",pack:null,cat:"Carbs"},{id:194,name:"Brioche Bun",c:31.1,p:5.4,f:1.6,kcal:164,serving:1,unit:"bun",pack:null,cat:"Carbs"},{id:195,name:"Crunchy Taco Shells",c:7.6,p:0.8,f:2.5,kcal:58,serving:1,unit:"taco",pack:null,cat:"Carbs"},{id:196,name:"30% Reduced Fat Mature Cheese",c:0.2,p:8.4,f:6.6,kcal:94,serving:30,unit:"g",pack:null,cat:"Dairy"},{id:197,name:"Beef Burgers (Morrisons)",c:3.3,p:20.4,f:4.7,kcal:138,serving:1,unit:"burger",pack:null,cat:"Protein"},{id:198,name:"Crunchy Nut Clusters",c:67,p:8,f:17,kcal:460,serving:100,unit:"g",pack:null,cat:"Snacks & Bars"},{id:199,name:"Tesco Low Fat Tikka Masala Sauce",c:9.5,p:0.8,f:1.8,kcal:58,serving:125,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:200,name:"Turkey Bacon",c:0.5,p:7.5,f:0.5,kcal:34,serving:1,unit:"rasher",pack:null,cat:"Protein"},{id:201,name:"Crumpet",c:19.4,p:3.3,f:0.4,kcal:97,serving:1,unit:"crumpet",pack:null,cat:"Carbs"},{id:202,name:"Sweetcorn (tin)",c:15,p:3.6,f:2.5,kcal:104,serving:1,unit:"half can",pack:null,cat:"Veg & Fruit"},{id:203,name:"Jacket Potato",c:22,p:2.5,f:0.2,kcal:107,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:204,name:"Brooklea Strawberry Protein Yogurt",c:9,p:25,f:1,kcal:144,serving:200,unit:"g",pack:null,cat:"Dairy"},{id:205,name:"Quaker Oat So Simple Golden Syrup",c:37,p:7.9,f:2.9,kcal:213,serving:1,unit:"pot",pack:null,cat:"Carbs"},{id:206,name:"Tesco Fish Pie Mix",c:2.2,p:13.3,f:0,kcal:62,serving:100,unit:"g",pack:null,cat:"Protein"},{id:207,name:"Creme Fraiche 50% Less Fat",c:0.7,p:0.4,f:2.3,kcal:25,serving:1,unit:"tbsp",pack:null,cat:"Dairy"},{id:208,name:"Quorn Swedish Style Balls",c:5.6,p:9.9,f:3.5,kcal:98,serving:75,unit:"g",pack:null,cat:"Protein"},{id:209,name:"Loyd Grossman Tomato & Basil Sauce",c:7.2,p:1.5,f:3,kcal:63,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:210,name:"Tomato Puree",c:2.3,p:0.7,f:0.1,kcal:14,serving:1,unit:"tbsp",pack:null,cat:"Veg & Fruit"},{id:211,name:"Quorn Sausages",c:8.3,p:8.7,f:8.7,kcal:154,serving:2,unit:"sausages",pack:null,cat:"Protein"},{id:212,name:"Bisto Reduced Salt Gravy",c:2.2,p:0.5,f:0.5,kcal:14,serving:50,unit:"ml",pack:null,cat:"Sauces & Condiments"},{id:213,name:"Garlic & Herb Dressing",c:1.2,p:0.1,f:3.6,kcal:38,serving:1,unit:"tbsp",pack:null,cat:"Sauces & Condiments"},{id:214,name:"20% Fat Lamb Mince",c:0,p:21,f:24.8,kcal:307,serving:125,unit:"g",pack:null,cat:"Protein"},{id:215,name:"Shepherds Pie Mix",c:7.7,p:1.5,f:0,kcal:40,serving:12.5,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:216,name:"Tesco Plain Mini Naan",c:22.5,p:3.7,f:2.1,kcal:127,serving:1,unit:"naan",pack:null,cat:"Carbs"},{id:217,name:"Snack a Jacks Caramel Rice Cake",c:11.3,p:0.7,f:0.3,kcal:51,serving:1,unit:"cake",pack:null,cat:"Carbs"},{id:218,name:"Pomegranate",c:9.4,p:1,f:0.2,kcal:44,serving:80,unit:"g",pack:null,cat:"Veg & Fruit"},{id:219,name:"Richmond Meat Free Mince",c:10,p:22,f:6.3,kcal:192,serving:100,unit:"g",pack:null,cat:"Protein"},{id:220,name:"Shreddies",c:28.2,p:4.3,f:0.7,kcal:146,serving:40,unit:"g",pack:null,cat:"Snacks & Bars"},{id:221,name:"Barenaked Protein Noodles",c:0.7,p:3.4,f:0.2,kcal:26,serving:125,unit:"g",pack:null,cat:"Carbs"},{id:222,name:"Bfree High Protein Wraps",c:4,p:12,f:2.9,kcal:100,serving:1,unit:"wrap",pack:null,cat:"Carbs"},{id:223,name:"Alpro Greek Style Yogurt Alt",c:2.6,p:5.8,f:3.3,kcal:68,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:224,name:"Kallo Wholegrain Rice Cake",c:5.6,p:0.6,f:0.2,kcal:27,serving:1,unit:"cake",pack:null,cat:"Carbs"},{id:225,name:"Pataks Plant-Based Korma Sauce",c:11,p:3,f:6,kcal:118,serving:100,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:226,name:"Linwoods Milled Flaxseed",c:0.6,p:5,f:8,kcal:102,serving:20,unit:"g",pack:null,cat:"Other"},{id:227,name:"Tofoo Tempeh",c:1.2,p:14.3,f:7.3,kcal:139,serving:67,unit:"g",pack:null,cat:"Protein"},{id:228,name:"Ashfield Meatballs",c:14,p:33.2,f:4.6,kcal:236,serving:150,unit:"g",pack:null,cat:"Protein"},{id:229,name:"Cucina Tomato & Basil Sauce",c:5.7,p:1.1,f:0.5,kcal:31,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:230,name:"Boil in a Bag Basmati",c:50,p:5.6,f:1.4,kcal:240,serving:1,unit:"half bag",pack:null,cat:"Sauces & Condiments"},{id:231,name:"Mayflower Chinese Curry Sauce",c:8.4,p:1.2,f:3.8,kcal:77,serving:100,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:232,name:"McCain Lighter Frozen Chips",c:22,p:2.3,f:2,kcal:119,serving:100,unit:"g",pack:null,cat:"Snacks & Bars"},{id:233,name:"Light Cheese Slices",c:7.1,p:18,f:7.6,kcal:169,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:234,name:"Chia Seeds",c:1.3,p:3.3,f:3.8,kcal:62,serving:15,unit:"g",pack:null,cat:"Other"},{id:235,name:"Chickpea Fusilli",c:56,p:14,f:3.3,kcal:193,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:236,name:"Kefir Protein Yogurt",c:15,p:26,f:0.9,kcal:175,serving:250,unit:"g",pack:null,cat:"Dairy"},{id:237,name:"Sweet Potato Fries",c:24,p:3.3,f:7.6,kcal:242,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:238,name:"Sweetcorn Cobette",c:7.85,p:1.7,f:0.9,kcal:48,serving:1,unit:"cob",pack:null,cat:"Veg & Fruit"},{id:239,name:"Huel Black Edition Chocolate",c:17,p:40,f:17,kcal:400,serving:90,unit:"g",pack:null,cat:"Protein"},{id:240,name:"Ciabatta Roll",c:42.3,p:8.73,f:2.79,kcal:236,serving:1,unit:"roll",pack:null,cat:"Carbs"},{id:241,name:"Nandos Peri Peri Hot Sauce",c:2.4,p:0.9,f:2.8,kcal:43,serving:100,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:242,name:"Peach Tea Clear Whey",c:0.7,p:20,f:0,kcal:84,serving:24,unit:"g",pack:null,cat:"Protein"},{id:243,name:"Feta Cheese",c:0.5,p:16,f:24,kcal:282,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:244,name:"Butter",c:1.2,p:1.1,f:83,kcal:754,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:245,name:"Aldi Protein Yogurt",c:3.5,p:12,f:0.5,kcal:68,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:246,name:"Aldi Tzatziki",c:4,p:3.4,f:11,kcal:128,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:247,name:"Aldi Udon Noodles",c:26,p:4.9,f:0.1,kcal:127,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:248,name:"Aldi Full Fat Mayo",c:0.6,p:0.1,f:11.7,kcal:108,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:249,name:"Black Olives",c:0.1,p:0.1,f:2,kcal:19,serving:15,unit:"g",pack:null,cat:"Sauces & Condiments"},{id:250,name:"Aldi Cheese Full Fat",c:0,p:6.5,f:8.7,kcal:104,serving:25,unit:"g",pack:null,cat:"Dairy"},{id:251,name:"Aldi Chicken Sausages",c:9.2,p:16.5,f:5,kcal:148,serving:2,unit:"sausages",pack:null,cat:"Protein"},{id:252,name:"Light Soy Sauce",c:1.2,p:0.2,f:0.1,kcal:6,serving:15,unit:"ml",pack:null,cat:"Sauces & Condiments"},{id:253,name:"Pecan Nuts",c:4,p:2.6,f:20,kcal:196,serving:26,unit:"g",pack:null,cat:"Snacks & Bars"},{id:254,name:"Lasagne Sheets",c:70,p:12.5,f:1.9,kcal:356,serving:100,unit:"g",pack:null,cat:"Carbs"},{id:255,name:"Low Fat Cottage Cheese",c:3.1,p:12.5,f:0.8,kcal:70,serving:100,unit:"g",pack:null,cat:"Dairy"},{id:256,name:"Peas (fresh/frozen)",c:8.1,p:4.6,f:0.7,kcal:66,serving:100,unit:"g",pack:null,cat:"Veg & Fruit"},{id:257,name:"Nordpak Lighter",c:0,p:0,f:5.7,kcal:52,serving:10,unit:"g",pack:null,cat:"Dairy"},{id:258,name:"Knorr Zero Salt Veggie Stock",c:1.1,p:0.5,f:0.5,kcal:38,serving:100,unit:"ml",pack:null,cat:"Protein"},{id:259,name:"Dreemy",c:73,p:3.5,f:15,kcal:441,serving:100,unit:"g",pack:null,cat:"Other"},{id:260,name:"Aldi Savour Bake Thins",c:68,p:13.9,f:6.9,kcal:400,serving:100,unit:"g",pack:null,cat:"Carbs"}];
 
-let packs={};
-FOODS.forEach(f=>{packs[f.id]=f.pack});
+let packs={}; // {id: [size1, size2, ...]} - up to 4 sizes per food
+FOODS.forEach(f=>{packs[f.id]=f.pack?[f.pack]:[]});
 
 const MEALS=['Breakfast','Lunch','Dinner','Pre-Workout','Post Workout','Snacks'];
 const DAYS=['Training Day 1','Training Day 2','Rest Day 1','Rest Day 2'];
@@ -1077,6 +1065,10 @@ async function manualSave() {
   setSaveIndicator('saving');
   await saveToCloud();
   setSaveIndicator('saved');
+  // Clear undo/redo stacks on save - new baseline
+  undoStacks.lewis = []; undoStacks.charlotte = [];
+  redoStacks.lewis = []; redoStacks.charlotte = [];
+  setUndoBtn(false, false, null);
 }
 
 function buildSnap() {
@@ -1088,7 +1080,7 @@ function buildSnap() {
     savedDays: savedDays,
     customFoods: customFoods,
     daysPlanned: { lewis: S.lewis.daysPlanned, charlotte: S.charlotte.daysPlanned },
-    packOverrides: Object.fromEntries(FOODS.filter(f => f.pack !== null).map(f => [f.id, packs[f.id] !== undefined ? packs[f.id] : f.pack]))
+    packOverrides: Object.fromEntries(Object.entries(packs).filter(([,v]) => Array.isArray(v) ? v.length > 0 : v !== null))
   };
 }
 
@@ -1192,7 +1184,7 @@ function applySnap(saved) {
   if (saved.savedDays) savedDays = saved.savedDays;
   if (saved.customFoods) {
     customFoods = saved.customFoods;
-    customFoods.forEach(f => { packs[f.id] = f.pack; });
+    customFoods.forEach(f => { packs[f.id] = Array.isArray(f.pack) ? f.pack : (f.pack ? [f.pack] : []); });
   }
   // Fix ID collision: set rid to max existing row ID so new rows never clash
   let maxId = rid;
@@ -1206,11 +1198,12 @@ function applySnap(saved) {
   });
   rid = maxId;
   if (saved.packOverrides) {
-    Object.entries(saved.packOverrides).forEach(([id, pack]) => {
+    Object.entries(saved.packOverrides).forEach(([id, packVal]) => {
       const fid = parseInt(id);
-      packs[fid] = pack;
+      // Migrate: if packVal is a number, convert to array
+      packs[fid] = Array.isArray(packVal) ? packVal : (packVal ? [packVal] : []);
       const builtIn = FOODS.find(f => f.id === fid);
-      if (builtIn) builtIn.pack = pack;
+      if (builtIn) builtIn.pack = packs[fid][0] || null;
     });
   }
   if (saved.daysPlanned) {
@@ -1454,7 +1447,9 @@ function shareDayView() {
 // ── STATE ADDITIONS ──
 let savedDays = []; // [{id, name, user, dayType, meals}]
 let customFoods = []; // user-added foods
-const undoStack = { lewis: null, charlotte: null }; // per-user undo
+// Per-user undo/redo stacks - unlimited until Save
+const undoStacks = { lewis: [], charlotte: [] };
+const redoStacks = { lewis: [], charlotte: [] };
 
 function getAllFoods() {
   return [...FOODS, ...customFoods];
@@ -1574,6 +1569,7 @@ function submitAddFood() {
   const serving = parseFloat(document.getElementById('afd-serving').value) || 100;
   const unit = document.getElementById('afd-unit').value.trim() || 'g';
   const pack = parseInt(document.getElementById('afd-pack').value) || null;
+  const packArr = pack ? [pack] : [];
   const cat = document.getElementById('afd-cat').value;
 
   if (!name) { document.getElementById('afd-err').textContent = 'Please enter a food name'; return; }
@@ -1581,7 +1577,7 @@ function submitAddFood() {
   const newId = 10000 + customFoods.length + 1;
   const newFood = { id: newId, name, p, c, f, kcal, serving, unit, pack, cat };
   customFoods.push(newFood);
-  packs[newId] = pack;
+  packs[newId] = packArr;
   saveState();
   // Clear search so new food is visible, then re-render
   const dbSearch = document.getElementById('db-search');
@@ -1663,20 +1659,36 @@ function showUndo(msg, user) {
 
 function doUndo() {
   const btn = document.getElementById('undo-btn');
-  if (!btn || btn.disabled) { toast('Nothing to undo'); return; }
-  // Try both users - whichever has a pending undo
-  const user = btn.dataset.undoUser || (['lewis','charlotte'].find(u => undoStack[u]) || null);
-  if (!user || !undoStack[user]) { toast('Nothing to undo'); return; }
-  const { day, snapshot } = undoStack[user];
-  // Switch to the right day if needed
+  const user = (btn && btn.dataset.undoUser) || ['lewis','charlotte'].find(u => undoStacks[u].length > 0);
+  if (!user || !undoStacks[user].length) { toast('Nothing to undo'); return; }
+  // Save current state to redo stack before undoing
+  const currentSnap = {};
+  MEALS.forEach(m => { currentSnap[m] = S[user].days[S[user].active][m].map(r => ({...r})); });
+  redoStacks[user].push({ day: S[user].active, snapshot: currentSnap });
+  // Pop and apply undo
+  const { day, snapshot } = undoStacks[user].pop();
   if (day !== S[user].active) S[user].active = day;
-  MEALS.forEach(m => {
-    if (snapshot[m]) S[user].days[day][m] = snapshot[m].map(r => ({...r}));
-  });
-  renderPanel(user); saveState();
-  setUndoBtn(false, null);
-  undoStack[user] = null;
-  toast('Undone');
+  MEALS.forEach(m => { if (snapshot[m]) S[user].days[day][m] = snapshot[m].map(r => ({...r})); });
+  renderPanel(user);
+  updateUndoRedoBtns(user);
+  toast('Undone (' + undoStacks[user].length + ' more)');
+}
+
+function doRedo() {
+  const btn = document.getElementById('redo-btn');
+  const user = (btn && btn.dataset.redoUser) || ['lewis','charlotte'].find(u => redoStacks[u].length > 0);
+  if (!user || !redoStacks[user].length) { toast('Nothing to redo'); return; }
+  // Save current state to undo stack before redoing
+  const currentSnap = {};
+  MEALS.forEach(m => { currentSnap[m] = S[user].days[S[user].active][m].map(r => ({...r})); });
+  undoStacks[user].push({ day: S[user].active, snapshot: currentSnap });
+  // Pop and apply redo
+  const { day, snapshot } = redoStacks[user].pop();
+  if (day !== S[user].active) S[user].active = day;
+  MEALS.forEach(m => { if (snapshot[m]) S[user].days[day][m] = snapshot[m].map(r => ({...r})); });
+  renderPanel(user);
+  updateUndoRedoBtns(user);
+  toast('Redone (' + redoStacks[user].length + ' more)');
 }
 
 // ── SAVED DAYS ──
@@ -1713,27 +1725,143 @@ function saveCurrentDay() {
   toast('"' + name + '" saved');
 }
 
+let _savedViewMode = 'days';
+
+function switchSavedView(mode, btn) {
+  _savedViewMode = mode;
+  document.querySelectorAll('#saved-view-days, #saved-view-meals').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderSavedDays();
+}
+
 function renderSavedDays() {
-  const el = document.getElementById('saved-days-list');
+  const el = document.getElementById('saved-view-content');
   if (!el) return;
+
+  if (_savedViewMode === 'days') {
+    renderSavedDaysView(el);
+  } else {
+    renderSavedMealsView(el);
+  }
+}
+
+function renderSavedDaysView(el) {
   if (!savedDays.length) {
-    el.innerHTML = '<div class="empty">No saved days yet. Plan a day then save it above.</div>';
+    el.innerHTML = `<div style="padding:16px 0">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div>
+          <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Whose day</div>
+          <select id="save-day-user" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 8px">
+            <option value="lewis">Lewis</option><option value="charlotte">Charlotte</option>
+          </select>
+        </div>
+        <div style="grid-column:2/4">
+          <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Name</div>
+          <input id="save-day-name" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 8px;box-sizing:border-box" placeholder="e.g. High protein day">
+        </div>
+        <button class="gbtn" onclick="saveCurrentDay()" style="height:32px;font-size:12px;padding:0 14px">Save day</button>
+      </div>
+      <div class="empty">No saved days yet.</div>
+    </div>`;
     return;
   }
-  el.innerHTML = savedDays.map(sd => {
-    const foodCount = Object.values(sd.meals).reduce((a,rows) => a + rows.length, 0);
-    return `<div class="sdl-item">
+  el.innerHTML = `<div style="padding-top:8px">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:12px">
       <div>
-        <div class="sdl-name">${sd.name}</div>
-        <div class="sdl-meta">${foodCount} foods · originally ${sd.user} · ${sd.dayType}</div>
+        <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Whose day</div>
+        <select id="save-day-user" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 8px">
+          <option value="lewis">Lewis</option><option value="charlotte">Charlotte</option>
+        </select>
       </div>
-      <div class="sdl-actions">
-        <button class="sdl-btn" onclick="openPreview(${sd.id})">Preview</button>
-        <button class="sdl-btn" onclick="openAssignDay(${sd.id})">Assign to...</button>
-        <button class="sdl-btn sdl-del" onclick="deleteSavedDay(${sd.id})">&#215;</button>
+      <div style="grid-column:2/4">
+        <div style="font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Name</div>
+        <input id="save-day-name" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 8px;box-sizing:border-box" placeholder="e.g. High protein day">
       </div>
-    </div>`;
-  }).join('');
+      <button class="gbtn" onclick="saveCurrentDay()" style="height:32px;font-size:12px;padding:0 14px">Save day</button>
+    </div>
+    ${savedDays.map(sd => {
+      const foodCount = Object.values(sd.meals).reduce((a,rows) => a + rows.length, 0);
+      return `<div class="sdl-item">
+        <div><div class="sdl-name">${sd.name}</div><div class="sdl-meta">${foodCount} foods · ${sd.user} · ${sd.dayType}</div></div>
+        <div class="sdl-actions">
+          <button class="sdl-btn" onclick="openPreview(${sd.id})">Preview</button>
+          <button class="sdl-btn" onclick="openAssignDay(${sd.id})">Assign to...</button>
+          <button class="sdl-btn sdl-del" onclick="deleteSavedDay(${sd.id})">&#215;</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderSavedMealsView(el) {
+  // Group foods by meal type across all saved days
+  el.innerHTML = `<div style="padding-top:8px">
+    ${MEALS.map(meal => {
+      const mealEntries = savedDays.filter(sd => sd.meals[meal] && sd.meals[meal].some(r => r.foodId));
+      if (!mealEntries.length) return '';
+      return `<div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);padding:0 2px 6px;font-family:'DM Mono',monospace">${meal}</div>
+        ${mealEntries.map(sd => {
+          const foods = sd.meals[meal].filter(r => r.foodId).map(r => { const fd = byId(r.foodId); return fd ? fd.name : null; }).filter(Boolean);
+          return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--border);gap:8px">
+              <div>
+                <div style="font-size:12px;font-weight:500;color:var(--text)">${sd.name}</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:1px">${sd.user} · ${sd.dayType}</div>
+              </div>
+              <button class="sdl-btn" onclick="openCopyMealFromSaved(${sd.id},'${meal}')">Copy meal to...</button>
+            </div>
+            <div style="padding:8px 14px;display:flex;flex-wrap:wrap;gap:4px">
+              ${foods.map(n => `<span style="font-size:11px;color:var(--text2);background:var(--card);border:1px solid var(--border);border-radius:3px;padding:2px 7px">${n}</span>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+    ${savedDays.length === 0 ? '<div class="empty">No saved days yet. Save a day from the Planner.</div>' : ''}
+  </div>`;
+}
+
+// Copy a single meal from a saved day to a destination
+function openCopyMealFromSaved(savedDayId, meal) {
+  _cpick = { mode: 'destFood', fromSavedId: savedDayId, fromSavedMeal: meal };
+  document.getElementById('cpick-title').textContent = 'Copy ' + meal + ' to...';
+  // Render destination picker
+  const body = document.getElementById('cpick-body');
+  let items = '';
+  ['lewis','charlotte'].forEach(toUser => {
+    DAYS.forEach(toDay => {
+      const destRows = S[toUser].days[toDay][meal].filter(r => r.foodId);
+      items += `<div class="cpick-item" onclick="executeCopyFromSaved('${toUser}','${toDay}','${meal}')">
+        <span class="cpick-iname">${S[toUser].label} · ${toDay} · ${meal}</span>
+        <span class="cpick-imeta">${destRows.length > 0 ? destRows.length + ' foods' : 'empty'}</span>
+      </div>`;
+    });
+  });
+  body.innerHTML = `<div class="cpick-section">Copy to where?</div>${items}`;
+  document.getElementById('cpick-overlay').style.display = 'flex';
+}
+
+function executeCopyFromSaved(toUser, toDay, toMeal) {
+  const sd = savedDays.find(s => s.id === _cpick.fromSavedId);
+  if (!sd) return;
+  const fromMeal = _cpick.fromSavedMeal;
+  const fromRows = sd.meals[fromMeal] ? sd.meals[fromMeal].filter(r => r.foodId) : [];
+  saveSnapshot(toUser);
+  fromRows.forEach(row => {
+    const dest = S[toUser].days[toDay][toMeal];
+    const existing = dest.find(r => r.foodId === row.foodId);
+    if (existing) { existing.qty = row.qty; }
+    else {
+      const last = dest[dest.length - 1];
+      if (!last.foodId) { last.foodId = row.foodId; last.qty = row.qty; }
+      else dest.push({ id: ++rid, foodId: row.foodId, qty: row.qty });
+    }
+  });
+  S[toUser].openMeals.add(toMeal);
+  renderPanel(toUser); saveState();
+  closeCopyPicker();
+  toast(fromMeal + ' from "' + sd.name + '" copied to ' + S[toUser].label);
 }
 
 let _assignDayId = null;
@@ -1794,33 +1922,43 @@ function packWarn(row, user) {
   if (!row.foodId) return null;
   const fd = byId(row.foodId);
   if (!fd) return null;
-  const packSize = packs[row.foodId]; if (!packSize) return null;
+  const packSizes = Array.isArray(packs[row.foodId]) ? packs[row.foodId] : (packs[row.foodId] ? [packs[row.foodId]] : []);
+  if (!packSizes.length) return null;
   const isW = ['g','ml'].includes(fd.unit);
   const activeDay = user ? S[user].active : 'Training Day 1';
   const days = user ? (S[user].daysPlanned[activeDay] || 1) : 1;
-  const perDay = row.qty * fd.serving; // always multiply by serving size
-  const myTotal = perDay * days;
-  // Check if other user has same food on same day type
+  const myTotal = row.qty * fd.serving * days;
   const otherUser = user === 'lewis' ? 'charlotte' : 'lewis';
   let otherTotal = 0;
   MEALS.forEach(m => {
     S[otherUser].days[activeDay][m].forEach(r => {
       if (r.foodId === row.foodId) {
-        const otherDays = S[otherUser].daysPlanned[activeDay] || 1;
-        otherTotal += (isW ? r.qty * fd.serving : r.qty) * otherDays;
+        otherTotal += r.qty * fd.serving * (S[otherUser].daysPlanned[activeDay] || 1);
       }
     });
   });
   const combined = otherTotal > 0;
   const totalToCheck = combined ? myTotal + otherTotal : myTotal;
-  const packs_needed = totalToCheck / packSize;
-  const whole = Math.abs(packs_needed - Math.round(packs_needed)) < 0.015;
-  if (whole) return `<span class="pw-ok">✓ ${Math.round(packs_needed)} pack${Math.round(packs_needed)!==1?'s':''}${combined?' combined':''}</span>`;
-  const lo = Math.floor(packs_needed) * packSize || packSize;
-  const hi = Math.ceil(packs_needed) * packSize;
-  const loQty = R(lo / days / (isW ? fd.serving : 1));
-  const hiQty = R(hi / days / (isW ? fd.serving : 1));
-  return `<span class="pw">${combined?'combined ':''}${R(totalToCheck)}${isW?fd.unit:''} — try ${loQty} or ${hiQty}/day</span>`;
+
+  // Check each pack size for best fit
+  let bestResult = null;
+  packSizes.forEach(packSize => {
+    const pn = totalToCheck / packSize;
+    const whole = Math.abs(pn - Math.round(pn)) < 0.015;
+    if (whole) {
+      if (!bestResult || !bestResult.exact) bestResult = { exact: true, count: Math.round(pn), size: packSize };
+    } else if (!bestResult || !bestResult.exact) {
+      const hi = Math.ceil(pn);
+      const waste = (hi * packSize) - totalToCheck;
+      if (!bestResult || waste < bestResult.waste) bestResult = { exact: false, count: hi, size: packSize, waste, pn };
+    }
+  });
+
+  if (!bestResult) return null;
+  const pfx = combined ? 'combined ' : '';
+  if (bestResult.exact) return `<span class="pw-ok">✓ ${bestResult.count}×${bestResult.size}${isW?fd.unit:''} exact${combined?' (combined)':''}</span>`;
+  const hiQty = R((bestResult.count * bestResult.size) / days / fd.serving);
+  return `<span class="pw">${pfx}${R(totalToCheck)}${isW?fd.unit:''} — ${bestResult.count}×${bestResult.size}${isW?fd.unit:''} (try ${hiQty}/day)</span>`;
 }
 
 function renderDB() {
@@ -1841,8 +1979,16 @@ function renderDB() {
       <td>${f.p}</td>
       <td>${f.c}</td>
       <td>${f.f}</td>
-      <td><input type="number" value="${f.pack||''}" placeholder="—" onchange="setPack(${f.id},this.value)"
-        style="width:48px;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:2px 4px;text-align:center"></td>
+      <td>
+        <div style="display:flex;gap:2px;flex-wrap:wrap;max-width:160px">
+          ${[0,1,2,3].map(idx => {
+            const v = (packs[f.id]||[])[idx];
+            return `<input type="number" value="${v||''}" placeholder="${idx===0?'Pack 1':idx===1?'Pack 2':idx===2?'Pack 3':'Pack 4'}"
+              onchange="setPackSize(${f.id},${idx},this.value)"
+              style="width:52px;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:2px 4px;text-align:center">`;
+          }).join('')}
+        </div>
+      </td>
     </tr>`
   ).join('');
 }
@@ -1850,19 +1996,35 @@ function renderDB() {
 // ── UPDATED showTab ──
 
 
-function setPack(id, val) {
-  const pack = val ? parseInt(val) : null;
-  packs[id] = pack;
-  // Update in FOODS array if built-in food
+function setPack(id, sizes) {
+  // sizes is an array of pack sizes (up to 4)
+  packs[id] = sizes.filter(s => s > 0);
   const builtIn = FOODS.find(f => f.id === id);
-  if (builtIn) builtIn.pack = pack;
-  // Update in customFoods if custom
+  if (builtIn) builtIn.pack = packs[id][0] || null;
   const custom = customFoods.find(f => f.id === id);
-  if (custom) custom.pack = pack;
+  if (custom) custom.pack = packs[id][0] || null;
   saveState();
-  // Re-render both panels so pack warnings update immediately
   renderPanel('lewis');
   renderPanel('charlotte');
+}
+
+function setPackSize(id, idx, val) {
+  if (!packs[id]) packs[id] = [];
+  const v = parseInt(val) || 0;
+  if (v > 0) {
+    packs[id][idx] = v;
+  } else {
+    packs[id].splice(idx, 1);
+  }
+  packs[id] = packs[id].filter(s => s > 0);
+  const builtIn = FOODS.find(f => f.id === id);
+  if (builtIn) builtIn.pack = packs[id][0] || null;
+  const custom = customFoods.find(f => f.id === id);
+  if (custom) custom.pack = packs[id][0] || null;
+  saveState();
+  renderPanel('lewis');
+  renderPanel('charlotte');
+  renderDB();
 }
 
 
@@ -2001,18 +2163,28 @@ function closePreview() {
 }
 
 
-function setUndoBtn(active, user) {
-  const btn = document.getElementById('undo-btn');
-  if (!btn) return;
-  if (active) {
-    btn.removeAttribute('disabled');
-    btn.style.cssText = 'padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1';
-    btn.dataset.undoUser = user;
-    btn.title = 'Undo last change';
-  } else {
-    btn.setAttribute('disabled', '');
-    btn.style.cssText = 'padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:\'DM Sans\',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4';
-    btn.title = 'Nothing to undo';
+function setUndoBtn(canUndo, canRedo, user) {
+  const uBtn = document.getElementById('undo-btn');
+  const rBtn = document.getElementById('redo-btn');
+  if (uBtn) {
+    if (canUndo) {
+      uBtn.removeAttribute('disabled');
+      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1";
+      if (user) uBtn.dataset.undoUser = user;
+    } else {
+      uBtn.setAttribute('disabled','');
+      uBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4";
+    }
+  }
+  if (rBtn) {
+    if (canRedo) {
+      rBtn.removeAttribute('disabled');
+      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--accent);border-radius:5px;background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;opacity:1";
+      if (user) rBtn.dataset.redoUser = user;
+    } else {
+      rBtn.setAttribute('disabled','');
+      rBtn.style.cssText = "padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text4);font-family:'DM Sans',sans-serif;font-size:11px;cursor:not-allowed;white-space:nowrap;opacity:0.4";
+    }
   }
 }
 
@@ -2022,10 +2194,18 @@ function saveSnapshot(user) {
   MEALS.forEach(m => {
     snap[m] = S[user].days[day][m].map(r => ({...r}));
   });
-  undoStack[user] = { user, day, snapshot: snap };
-  setUndoBtn(true, user);
-  if (window._undoTimer) clearTimeout(window._undoTimer);
-  window._undoTimer = setTimeout(() => setUndoBtn(false, null), 15000);
+  undoStacks[user].push({ day, snapshot: snap });
+  // Keep max 50 steps per user
+  if (undoStacks[user].length > 50) undoStacks[user].shift();
+  // Clear redo stack on new action
+  redoStacks[user] = [];
+  updateUndoRedoBtns(user);
+}
+
+function updateUndoRedoBtns(user) {
+  const canUndo = undoStacks[user] && undoStacks[user].length > 0;
+  const canRedo = redoStacks[user] && redoStacks[user].length > 0;
+  setUndoBtn(canUndo, canRedo, user);
 }
 
 
