@@ -1645,7 +1645,8 @@ function submitAddFood() {
 
   if (!name) { document.getElementById('afd-err').textContent = 'Please enter a food name'; return; }
 
-  const newId = 10000 + customFoods.length + 1;
+  const existingIds = customFoods.map(f => f.id);
+  const newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 10001;
   const mFibre = parseFloat(document.getElementById('afd-fibre').value) || 0;
   const mSugar = parseFloat(document.getElementById('afd-sugar').value) || 0;
   const mSodium = parseFloat(document.getElementById('afd-sodium').value) || 0;
