@@ -431,6 +431,33 @@ input[type=number]{-moz-appearance:textfield}
 .preview-food{font-size:13px;color:var(--text);padding:2px 0;padding-left:8px;border-left:2px solid var(--border)}
 .preview-empty{font-size:11px;color:var(--text4);padding-left:8px;font-style:italic}
 
+
+/* ── MEAL PREP TAB ── */
+.prep-controls{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.prep-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prep-row-label{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.6px;width:100%}
+.prep-pills{display:flex;gap:6px;flex-wrap:wrap}
+.prep-pill{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.prep-pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.prep-days-input{width:44px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:5px 8px;text-align:center}
+.prep-summary{font-size:11px;color:var(--text3);padding-top:4px;border-top:1px solid var(--border)}
+.prep-list{display:flex;flex-direction:column;gap:6px}
+.prep-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s;user-select:none}
+.prep-item.checked{opacity:0.45;background:var(--card2)}
+.prep-check{width:22px;height:22px;border:2px solid var(--border2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.prep-item.checked .prep-check{background:var(--accent);border-color:var(--accent)}
+.prep-check svg{opacity:0;transition:opacity .15s;width:14px;height:14px}
+.prep-item.checked .prep-check svg{opacity:1}
+.prep-item-name{flex:1;font-size:14px;color:var(--text)}
+.prep-item.checked .prep-item-name{text-decoration:line-through;color:var(--text3)}
+.prep-item-amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
+.prep-item.checked .prep-item-amt{color:var(--text3)}
+.prep-progress{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.prep-progress-bar{flex:1;height:6px;background:var(--card2);border-radius:3px;overflow:hidden}
+.prep-progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.prep-progress-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap}
+.prep-reset-btn{padding:5px 12px;border:1px solid var(--border);border-radius:var(--r);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap}
+
 /* ── FOOD PICKER MODAL ── */
 .fp-overlay{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
 .fp-card{background:var(--panel);border:1px solid var(--border);border-radius:12px 12px 0 0;width:100%;max-width:560px;display:flex;flex-direction:column;max-height:85vh}
@@ -572,6 +599,7 @@ document.fonts.ready.then(function() {
     <div class="nav">
       <button class="nb on" onclick="showTab('planner',this)">Planner</button>
       <button class="nb" onclick="showTab('daily',this)">Day View</button>
+      <button class="nb" onclick="showTab('prep',this)">Meal Prep</button>
       <button class="nb" onclick="showTab('shopping',this)">Shopping</button>
       <button class="nb" onclick="showTab('saved',this)">Saved</button>
       <button class="nb" onclick="showTab('database',this)">Database</button>
@@ -664,6 +692,39 @@ document.fonts.ready.then(function() {
       </div>
       <div id="saved-view-content"></div>
       <div id="saved-days-list" style="display:none"></div>
+    </div>
+  </div>
+
+
+  <!-- MEAL PREP -->
+  <div id="view-prep" class="view dv" style="display:none">
+    <div class="di">
+      <div class="ph"><h2>Meal Prep</h2><p>Batch prep ingredients across days, checked off as you go.</p></div>
+      <div class="prep-controls">
+        <div class="prep-row">
+          <span class="prep-row-label">Meal</span>
+          <div class="prep-pills" id="prep-meal-pills"></div>
+        </div>
+        <div class="prep-row">
+          <span class="prep-row-label">Day type</span>
+          <div class="prep-pills" id="prep-day-pills"></div>
+        </div>
+        <div class="prep-row">
+          <span class="prep-row-label">Who</span>
+          <div class="prep-pills" id="prep-who-pills"></div>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text3)">Days:</span>
+            <input class="prep-days-input" id="prep-days-input" type="number" min="1" max="31" value="1" onchange="renderPrepList()">
+          </span>
+        </div>
+        <div class="prep-summary" id="prep-summary"></div>
+      </div>
+      <div class="prep-progress">
+        <div class="prep-progress-bar"><div class="prep-progress-fill" id="prep-progress-fill" style="width:0%"></div></div>
+        <span class="prep-progress-text" id="prep-progress-text">0/0</span>
+        <button class="prep-reset-btn" onclick="resetPrepTicks()">Reset ticks</button>
+      </div>
+      <div class="prep-list" id="prep-list"></div>
     </div>
   </div>
 
@@ -978,6 +1039,7 @@ function renderMeal(user,meal,other){
   const ol=S[other].label;
 
   const rowsH=rows.map(row=>{
+    try {
     const fd=row.foodId?byId(row.foodId):null;
     const v=rowM(row);
     const w=packWarn(row, user);
@@ -1014,6 +1076,10 @@ function renderMeal(user,meal,other){
       <div class="nc" style="display:none">${fd?R(v.c):''}</div>
       <div class="nc" style="display:none">${fd?R(v.f):''}</div>
     </div>`;;
+    } catch(e) {
+      console.error('Row render error:', e, row);
+      return '<div style="padding:6px 12px;font-size:10px;color:var(--red)">⚠ Error rendering row id:' + row.id + '</div>';
+    }
   }).join('');
 
   return`<div class="mblock${isOpen?' open':''}">
@@ -1110,7 +1176,8 @@ function buildSnap() {
     customFoods: customFoods,
     daysPlanned: { lewis: S.lewis.daysPlanned, charlotte: S.charlotte.daysPlanned },
     packOverrides: Object.fromEntries(Object.entries(packs).filter(([,v]) => Array.isArray(v) ? v.length > 0 : v !== null)),
-    foodOverrides: foodOverrides
+    foodOverrides: foodOverrides,
+    prepTicks: prepTicks
   };
 }
 
@@ -1270,6 +1337,7 @@ function applySnap(saved) {
       }
     });
   }
+  if (saved.prepTicks) prepTicks = saved.prepTicks;
   if (saved.daysPlanned) {
     ['lewis','charlotte'].forEach(u => {
       if (saved.daysPlanned[u]) S[u].daysPlanned = saved.daysPlanned[u];
@@ -2583,8 +2651,134 @@ function editFoodMicro(id, idx, val) {
   saveToCloud().catch(() => {});
 }
 
+
+// ── MEAL PREP ──
+let _prepMeal = 'Breakfast';
+let _prepDay = null; // set on init to active day
+let _prepWho = 'both'; // 'lewis' | 'charlotte' | 'both'
+let prepTicks = {}; // { "meal|day|who|days|foodId": true }
+
+function initPrepTab() {
+  if (!_prepDay) _prepDay = S.lewis.active;
+  renderPrepControls();
+  renderPrepList();
+}
+
+function renderPrepControls() {
+  document.getElementById('prep-meal-pills').innerHTML = MEALS.map(m =>
+    `<button class="prep-pill${m===_prepMeal?' on':''}" onclick="setPrepMeal('${m}')">${m}</button>`
+  ).join('');
+  document.getElementById('prep-day-pills').innerHTML = DAYS.map(d =>
+    `<button class="prep-pill${d===_prepDay?' on':''}" onclick="setPrepDay('${d}')">${d}</button>`
+  ).join('');
+  document.getElementById('prep-who-pills').innerHTML = `
+    <button class="prep-pill${_prepWho==='lewis'?' on':''}" onclick="setPrepWho('lewis')">Lewis</button>
+    <button class="prep-pill${_prepWho==='charlotte'?' on':''}" onclick="setPrepWho('charlotte')">Charlotte</button>
+    <button class="prep-pill${_prepWho==='both'?' on':''}" onclick="setPrepWho('both')">Both</button>
+  `;
+  // Default days input to the days-planned value for this day type (from either user)
+  const daysInput = document.getElementById('prep-days-input');
+  if (daysInput && !daysInput.dataset.userEdited) {
+    const d = S.lewis.daysPlanned[_prepDay] || 1;
+    daysInput.value = d;
+  }
+}
+
+function setPrepMeal(m) { _prepMeal = m; renderPrepControls(); renderPrepList(); }
+function setPrepDay(d) {
+  _prepDay = d;
+  const daysInput = document.getElementById('prep-days-input');
+  if (daysInput) { daysInput.dataset.userEdited = ''; delete daysInput.dataset.userEdited; }
+  renderPrepControls(); renderPrepList();
+}
+function setPrepWho(w) { _prepWho = w; renderPrepControls(); renderPrepList(); }
+
+function getPrepIngredients() {
+  const days = parseInt(document.getElementById('prep-days-input').value) || 1;
+  const users = _prepWho === 'both' ? ['lewis','charlotte'] : [_prepWho];
+  const totals = {}; // foodId -> total grams/units
+
+  users.forEach(u => {
+    const rows = S[u].days[_prepDay][_prepMeal].filter(r => r.foodId);
+    rows.forEach(row => {
+      const fd = byId(row.foodId);
+      if (!fd) return;
+      const amt = row.qty * fd.serving * days;
+      if (!totals[fd.id]) totals[fd.id] = { fd, amt: 0 };
+      totals[fd.id].amt += amt;
+    });
+  });
+
+  return Object.values(totals).sort((a,b) => a.fd.name.localeCompare(b.fd.name));
+}
+
+function renderPrepList() {
+  const days = parseInt(document.getElementById('prep-days-input').value) || 1;
+  document.getElementById('prep-days-input').dataset.userEdited = 'true';
+  const items = getPrepIngredients();
+  const who = _prepWho === 'both' ? 'Lewis + Charlotte' : (_prepWho === 'lewis' ? 'Lewis' : 'Charlotte');
+
+  document.getElementById('prep-summary').textContent =
+    `${_prepMeal} · ${_prepDay} · ${who} · ${days} day${days!==1?'s':''} · ${items.length} ingredient${items.length!==1?'s':''}`;
+
+  if (!items.length) {
+    document.getElementById('prep-list').innerHTML = '<div class="empty">No foods planned for this meal yet.</div>';
+    updatePrepProgress(0, 0);
+    return;
+  }
+
+  const listKey = `${_prepMeal}|${_prepDay}|${_prepWho}|${days}`;
+
+  document.getElementById('prep-list').innerHTML = items.map(({fd, amt}) => {
+    const isW = ['g','ml'].includes(fd.unit);
+    const amtStr = isW ? Math.round(amt*10)/10 + fd.unit : Math.round(amt*10)/10 + ' ' + fd.unit;
+    const tickKey = `${listKey}|${fd.id}`;
+    const checked = !!prepTicks[tickKey];
+    return `<div class="prep-item${checked?' checked':''}" onclick="togglePrepTick('${tickKey}')">
+      <div class="prep-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+      <span class="prep-item-name">${fd.name}</span>
+      <span class="prep-item-amt">${amtStr}</span>
+    </div>`;
+  }).join('');
+
+  const checkedCount = items.filter(({fd}) => prepTicks[`${listKey}|${fd.id}`]).length;
+  updatePrepProgress(checkedCount, items.length);
+}
+
+function togglePrepTick(key) {
+  prepTicks[key] = !prepTicks[key];
+  saveState();
+  renderPrepList();
+}
+
+function updatePrepProgress(done, total) {
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  document.getElementById('prep-progress-fill').style.width = pct + '%';
+  document.getElementById('prep-progress-text').textContent = done + '/' + total;
+}
+
+function resetPrepTicks() {
+  const days = parseInt(document.getElementById('prep-days-input').value) || 1;
+  const listKey = `${_prepMeal}|${_prepDay}|${_prepWho}|${days}`;
+  Object.keys(prepTicks).forEach(k => { if (k.startsWith(listKey + '|')) delete prepTicks[k]; });
+  saveState();
+  renderPrepList();
+}
+
 // ── ACTIONS ──
-function setDay(u,d){S[u].active=d;renderPanel(u);saveState();}
+function setDay(u,d){
+  try {
+    S[u].active=d;
+    renderPanel(u);
+    saveState();
+  } catch(e) {
+    console.error('setDay error:', e);
+    // Force re-render with empty day if corrupted
+    S[u].active=d;
+    const col = document.getElementById('col-'+u);
+    if (col) col.innerHTML = '<div style="padding:20px;color:var(--red)">⚠ Error loading ' + d + '. Try refreshing.</div>';
+  }
+}
 function setTarget(u,k,v){
   S[u].targets[k]=parseFloat(v)||0;
   // Auto-calc kcal from macros
@@ -2849,6 +3043,7 @@ function showTab(name,btn){
   if(name==='database')renderDB();
   if(name==='daily')renderDayView();
   if(name==='saved')renderSavedDays();
+  if(name==='prep')initPrepTab();
 }
 
 // ── TOAST ──
